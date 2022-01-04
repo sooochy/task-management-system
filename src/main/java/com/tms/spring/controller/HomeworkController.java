@@ -1,5 +1,6 @@
 package com.tms.spring.controller;
 
+import java.util.*;  
 import java.util.List;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -59,6 +60,7 @@ import com.tms.spring.request.SignIn.CheckLoginRequest;
 import com.tms.spring.request.Homeworks.AddHomeworkRequest;
 import com.tms.spring.request.Homeworks.EditHomeworkRequest;
 import com.tms.spring.request.Homeworks.DeleteHomeworkRequest;
+import com.tms.spring.request.Homeworks.FinishHomeworkRequest;
 
 // Responses
 import com.tms.spring.response.DefaultHomeworkStatus;
@@ -104,11 +106,8 @@ public class HomeworkController {
   @PostMapping("/add")
   public ResponseEntity<DefaultHomeworkStatus> addHomework(@ModelAttribute AddHomeworkRequest request) {
     // In request: name, description (moze byc null), deadline (tak jak date oraz moze byc null), estimatedTime (w minutach), 
-    //             date (liczba milisekund od daty x (do obliczenia)), isMarked, tstId, files[], notifications[], [userEmail, userToken]
-    // In response: if added (OK), id
-
-    // TODO:
-    // sprawdzanie, czy termin powiadomień nie obejmuje terminów PRZED datą otrzymania zadania
+    //             date (liczba milisekund od daty x (do obliczenia)), isMarked, tstId, language, files[], notifications[], [userEmail, userToken]
+    // In response: if added (OK), homework
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
@@ -158,6 +157,23 @@ public class HomeworkController {
     
     if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
 
+    // Language validation
+    if(request.getLanguage() != null && !request.getLanguage().equals("")) {
+      switch(request.getLanguage()) {
+        case "pl":
+          request.setLanguage("pl");
+          break;
+        case "en":
+          request.setLanguage("en");
+          break;
+        default:
+          request.setLanguage("en");
+          break;
+      }
+    } else {
+      request.setLanguage("en");
+    }
+
     // Creating and saving new homework
     HomeworkModel homework = new HomeworkModel(request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType, user);
     homeworkRepository.saveAndFlush(homework);
@@ -176,35 +192,35 @@ public class HomeworkController {
     homework.setFiles(homeworkFiles);
 
     // Creating notifications for this homework
-    NotificationModel notification = null;
-    List<NotificationModel> notifications = null;
+    NotificationModel notification;
+    List<NotificationModel> notifications = Collections.<NotificationModel>emptyList();
 
     if(request.getNotifications() != null) { 
       for(Integer i = 0; i < request.getNotifications().length; i++) {
           switch(request.getNotifications()[i]) {
             case 0:
-              notification = new NotificationModel(deadline, homework);
+              notification = new NotificationModel(deadline, request.getLanguage(), homework);
               break;
             case 1:
-              notification = new NotificationModel(deadline.minus(1800, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(1800, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 2:
-              notification = new NotificationModel(deadline.minus(3600, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(3600, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 3:
-              notification = new NotificationModel(deadline.minus(21600, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(21600, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 4:
-              notification = new NotificationModel(deadline.minus(43200, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(43200, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 5:
-              notification = new NotificationModel(deadline.minus(86400, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(86400, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 6:
-              notification = new NotificationModel(deadline.minus(259200, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(259200, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 7:
-              notification = new NotificationModel(deadline.minus(604800, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(604800, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             default:
               throw new NotValidException("incorrectNotification");
@@ -214,7 +230,7 @@ public class HomeworkController {
       }
       notifications = notificationRepository.findAllByHomeworkId(homework.getId());
     }
-
+    
     // Setting homework's notifications
     homework.setNotifications(notifications);
     
@@ -224,10 +240,10 @@ public class HomeworkController {
   /* =========================================================== [ EDIT HOMEWORK ] ====================================================== */
 
   @PostMapping("/edit")
-  public ResponseEntity<DefaultHomeworkStatus> editHomework(@RequestBody EditHomeworkRequest request) {
+  public ResponseEntity<DefaultHomeworkStatus> editHomework(@ModelAttribute EditHomeworkRequest request) {
     // In request: id, name, description (moze byc null), deadline (tak jak date oraz moze byc null), estimatedTime (w minutach), 
-    //             date (liczba milisekund od daty x (do obliczenia)), isMarked, isDone, tstId, oldFiles[], files[], notifications[], [userEmail, userToken]
-    // In response: if added (OK), id
+    //             date (liczba milisekund od daty x (do obliczenia)), isMarked, tstId, oldFiles[], files[], notifications[], [userEmail, userToken]
+    // In response: if added (OK), editedHomework
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
@@ -267,8 +283,8 @@ public class HomeworkController {
 
     if(date.isBefore(firstPossibleDate)) { throw new NotValidException("incorrectDate"); }
 
-    // Booleans check
-    if(Stream.of(request.getIsMarked(), request.getIsDone()).anyMatch(value -> value == null)) { throw new NotValidException("incorrectMarkedOrDone"); }
+    // Checking if isMarked is boolean
+    if(request.getIsMarked() != true && request.getIsMarked() != false) { throw new NotValidException("incorrectIsMarked"); }
 
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
@@ -281,8 +297,24 @@ public class HomeworkController {
     
     if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
 
-    // Editing list of files in this homework:
-    // Searching the current list of homework's files
+    // Language validation
+    if(request.getLanguage() != null && !request.getLanguage().equals("")) {
+      switch(request.getLanguage()) {
+        case "pl":
+          request.setLanguage("pl");
+          break;
+        case "en":
+          request.setLanguage("en");
+          break;
+        default:
+          request.setLanguage("en");
+          break;
+      }
+    } else {
+      request.setLanguage("en");
+    }
+
+    // Editing list of files in this homework: searching the current list of homework's files
     ArrayList<FileModel> listOfFiles = new ArrayList<>(homework.getFiles());
 
     if(request.getOldFiles() != null && request.getOldFiles().length != 0) {
@@ -296,7 +328,10 @@ public class HomeworkController {
         }
       }
     }
+
+    // Deleting old files
     fileRepository.deleteAll(listOfFiles);
+    fileRepository.flush();
 
     // Saving new homework's files to database
     try {
@@ -306,59 +341,49 @@ public class HomeworkController {
     }
 
     // Setting name, description, date and TSS
-    HomeworkModel editedHomework = new HomeworkModel(homework.getId(), request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), request.getIsDone(), teacherSubjectType, user);
+    HomeworkModel editedHomework = new HomeworkModel(homework.getId(), request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType, user);
 
     // Assigning files to homework
     List<FileModel> homeworkFiles = fileRepository.findAllByHomeworkId(homework.getId());
     editedHomework.setFiles(homeworkFiles);
 
-    // Edit list of notifications in this homework:
-    // Searching the current list of homework's notifications
+    // Edit list of notifications in this homework: searching the current list of homework's notifications
     ArrayList<NotificationModel> listOfNotifications = new ArrayList<>(homework.getNotifications());
 
-    if(request.getOldNotifications() != null && request.getOldNotifications().length != 0) {
-      for(Integer i = 0; i < request.getOldNotifications().length; i++) {
-        for(Integer j = 0; j < listOfNotifications.size(); j++) {
-          if(listOfNotifications.get(j).getId().equals(request.getOldNotifications()[i])) {
-            listOfNotifications.remove(listOfNotifications.get(j));
-            j--;
-            break;
-          }
-        }
-      }
-    }
+    // Deleting old homework's notifications
     notificationRepository.deleteAll(listOfNotifications);
+    notificationRepository.flush();
 
     // Adding new notifications to current homework
-    NotificationModel notification = null;
-    List<NotificationModel> notifications = null;
+    NotificationModel notification;
+    List<NotificationModel> notifications = Collections.<NotificationModel>emptyList();
 
     if(request.getNotifications() != null) { 
       for(Integer i = 0; i < request.getNotifications().length; i++) {
           switch(request.getNotifications()[i]) {
             case 0:
-              notification = new NotificationModel(deadline, homework);
+              notification = new NotificationModel(deadline, request.getLanguage(), homework);
               break;
             case 1:
-              notification = new NotificationModel(deadline.minus(1800, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(1800, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 2:
-              notification = new NotificationModel(deadline.minus(3600, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(3600, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 3:
-              notification = new NotificationModel(deadline.minus(21600, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(21600, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 4:
-              notification = new NotificationModel(deadline.minus(43200, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(43200, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 5:
-              notification = new NotificationModel(deadline.minus(86400, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(86400, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 6:
-              notification = new NotificationModel(deadline.minus(259200, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(259200, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             case 7:
-              notification = new NotificationModel(deadline.minus(604800, ChronoUnit.SECONDS), homework);
+              notification = new NotificationModel(deadline.minus(604800, ChronoUnit.SECONDS), request.getLanguage(), homework);
               break;
             default:
               throw new NotValidException("incorrectNotification");
@@ -368,14 +393,43 @@ public class HomeworkController {
       }
       notifications = notificationRepository.findAllByHomeworkId(homework.getId());
     }
-
+    
     // Setting homework's notifications
-    homework.setNotifications(notifications);
+    editedHomework.setNotifications(notifications);
 
     // Saving material with edited data
     homeworkRepository.saveAndFlush(editedHomework);
 
     return new ResponseEntity<>(new DefaultHomeworkStatus("homeworkEdited", editedHomework), HttpStatus.ACCEPTED);
+  }
+
+  /* ========================================================== [ FINISH HOMEWORK ] ===================================================== */
+
+  @PostMapping("/finish")
+  public ResponseEntity<DefaultHomeworkStatus> finishHomework(@RequestBody FinishHomeworkRequest request) {
+    // In request: id, isDone, [userEmail, userToken]
+    // In response: if added (OK), finishedHomework
+
+    // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
+    UserModel user = userRepository.findOneByEmail(request.getUserEmail());
+    if(user == null || !user.checkUser(request.getUserToken())) {
+      throw new UserNotExists("tokenNotValid");
+    }
+
+    // Looking for homework to finish/restore in database
+    HomeworkModel finishedHomework = homeworkRepository.findOneByIdAndUser(request.getId(), user);
+    if(finishedHomework == null) { throw new UserNotExists("homeworkNotExists"); }
+
+    // Checking if isDone is boolean
+    if(request.getIsDone() != true && request.getIsDone() != false) { throw new NotValidException("incorrectIsDone"); }
+
+    // Setting new value of isDone (0 -> finished | 1 -> restored to current homeworks)
+    finishedHomework.setIsDone(request.getIsDone());
+
+    // Saving homework with edited data
+    homeworkRepository.saveAndFlush(finishedHomework);
+
+    return new ResponseEntity<>(new DefaultHomeworkStatus("homeworkFinishedOrRestored", finishedHomework), HttpStatus.ACCEPTED);
   }
 
   /* ========================================================== [ DELETE HOMEWORK ] ===================================================== */
@@ -418,7 +472,7 @@ public class HomeworkController {
     return new ResponseEntity<>(user.getHomeworks(), HttpStatus.OK);
   }
 
-  /* ============================================================== [ ADD FILE ] ========================================================= */
+  /* ============================================================ [ UPLOAD FILE ] ======================================================= */
 
   public FileModel uploadFile(MultipartFile file, Long homeworkId) {
     FileModel fileModel = fileStorageService.storeHomeworkFile(file, homeworkId);

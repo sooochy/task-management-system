@@ -14,6 +14,7 @@ public class AddHomeworkRequest {
     private Long date;
     private Boolean isMarked;
     private Long tstId;
+    private String language;
     private MultipartFile[] files;
     private Short[] notifications;
     private String userEmail;

@@ -14,11 +14,10 @@ public class EditHomeworkRequest {
     private Long estimatedTime;
     private Long date;
     private Boolean isMarked;
-    private Boolean isDone;
     private Long tstId;
+    private String language;
     private String[] oldFiles;
     private MultipartFile[] files;
-    private Short[] oldNotifications;
     private Short[] notifications;
     private String userEmail;
     private String userToken;

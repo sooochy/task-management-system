@@ -143,8 +143,8 @@ public class PlanElementController {
     }
 
     // Looking for user's plan element to edit by id 
-    PlanElementModel existingPlanElement = planElementRepository.findOneByIdAndUser(request.getId(), user);
-    if(existingPlanElement == null) {
+    PlanElementModel planElement = planElementRepository.findOneByIdAndUser(request.getId(), user);
+    if(planElement == null) {
       throw new UserNotExists("planElementNotExists");
     }
 
@@ -193,10 +193,10 @@ public class PlanElementController {
     if(request.getName() != null) { name = request.getName(); }
 
     // Creating and saving new plan element
-    PlanElementModel planElement = new PlanElementModel(request.getId(), name, request.getDay(), request.getStartTime(), request.getEndTime(), teacherSubjectType, user, request.getRepetition());
-    planElementRepository.save(planElement);
+    PlanElementModel editedPlanElement = new PlanElementModel(request.getId(), name, request.getDay(), request.getStartTime(), request.getEndTime(), teacherSubjectType, user, request.getRepetition());
+    planElementRepository.save(editedPlanElement);
 
-    return new ResponseEntity<>(new DefaultPlanElementStatus("planElementEdited", planElement, teacherSubjectType), HttpStatus.ACCEPTED);
+    return new ResponseEntity<>(new DefaultPlanElementStatus("planElementEdited", editedPlanElement, teacherSubjectType), HttpStatus.ACCEPTED);
   }
 
   /* ========================================================== [ DELETE PLAN ELEMENT ] ===================================================== */

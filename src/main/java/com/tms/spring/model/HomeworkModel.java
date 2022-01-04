@@ -39,6 +39,7 @@ public class HomeworkModel {
   @Column(nullable = false)
   private Boolean isDone;
 
+  @JsonIgnore
   @OneToOne(mappedBy = "homework")
   private MarkModel mark;
 
@@ -75,7 +76,7 @@ public class HomeworkModel {
   }
 
   public HomeworkModel(Long id, String name, String description, LocalDateTime deadline, Long estimatedTime, LocalDateTime date, 
-      Boolean isMarked, Boolean isDone, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -83,7 +84,7 @@ public class HomeworkModel {
     this.estimatedTime = estimatedTime;
     this.date = date;
     this.isMarked = isMarked;
-    this.isDone = isDone;
+    this.isDone = false;
     this.teacherSubjectType = teacherSubjectType;
     this.user = user;
   }

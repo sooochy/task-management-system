@@ -271,7 +271,7 @@ public class MaterialController {
     return new ResponseEntity<>(user.getMaterials(), HttpStatus.OK);
   }
 
-  /* ============================================================== [ ADD FILE ] ========================================================= */
+  /* ============================================================ [ UPLOAD FILE ] ======================================================= */
 
   public FileModel uploadFile(MultipartFile file, Long materialId) {
     FileModel fileModel = fileStorageService.storeMaterialFile(file, materialId);
