@@ -47,4 +47,14 @@ public class EventModel {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "tst_id")
   private TeacherSubjectTypeModel teacherSubjectType;
+
+  public EventModel(String name, String description, LocalDateTime startDate, LocalDateTime endDate, Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+    this.name = name;
+    this.description = description;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.isMarked = isMarked;
+    this.teacherSubjectType = teacherSubjectType;
+    this.user = user;
+  }
 }

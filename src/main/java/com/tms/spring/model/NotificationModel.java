@@ -46,4 +46,12 @@ public class NotificationModel {
     this.isViewed = false;
     this.isSent = false;
   }
+
+  public NotificationModel(LocalDateTime alertDate, String language, EventModel event) {
+    this.alertDate = alertDate;
+    this.language = language;
+    this.event = event;
+    this.isViewed = false;
+    this.isSent = false;
+  }
 }

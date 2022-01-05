@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @Repository
 public interface NotificationRepository extends JpaRepository<NotificationModel, String> {
     List<NotificationModel> findAll();
+    List<NotificationModel> findAllByEventId(Long id);
     List<NotificationModel> findAllByHomeworkId(Long id);
 }

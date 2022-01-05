@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 @Repository
 public interface FileRepository extends JpaRepository<FileModel, String> {
     FileModel findOneById(String id);
+    List<FileModel> findAllByEventId(Long id);
     List<FileModel> findAllByMaterialId(Long id);
     List<FileModel> findAllByHomeworkId(Long id);
 }

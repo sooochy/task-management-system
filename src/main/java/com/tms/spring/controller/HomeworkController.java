@@ -1,30 +1,20 @@
 package com.tms.spring.controller;
 
-import java.util.*;  
 import java.util.List;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.time.Instant;
 import java.util.stream.*;
 import java.util.ArrayList;
-import java.time.LocalDate;
+import java.util.Collections;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import org.springframework.http.MediaType;
-import java.time.format.DateTimeFormatter;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpHeaders;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -105,8 +95,8 @@ public class HomeworkController {
 
   @PostMapping("/add")
   public ResponseEntity<DefaultHomeworkStatus> addHomework(@ModelAttribute AddHomeworkRequest request) {
-    // In request: name, description (moze byc null), deadline (tak jak date oraz moze byc null), estimatedTime (w minutach), 
-    //             date (liczba milisekund od daty x (do obliczenia)), isMarked, tstId, language, files[], notifications[], [userEmail, userToken]
+    // In request: name, description (may be empty), deadline (milliseconds from date x (to calculate), may be null), estimatedTime (in minutes), 
+    //             date (like deadline), isMarked, tstId, language, files[], notifications[], [userEmail, userToken]
     // In response: if added (OK), homework
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
@@ -119,17 +109,14 @@ public class HomeworkController {
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
-    // Deadline cannot be earlier than the current date
-    LocalDateTime deadline = null;
+    // Deadline validation
+    LocalDateTime deadline;
     Long milliseconds;
+
     if(request.getDeadline() != null) {
       milliseconds = request.getDeadline();
-
       deadline = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-      LocalDateTime currentDateTime = LocalDateTime.now();
-
-      if(deadline.isBefore(currentDateTime)) { throw new NotValidException("incorrectDeadline"); }
-    }
+    } else { throw new NotValidException("incorrectDeadline"); }
 
     // Estimated time check
     if(request.getEstimatedTime() != 0) { if(request.getEstimatedTime() < 0 || request.getEstimatedTime() > ((500 *60) + 59)) { throw new NotValidException("incorrectEstimatedTime"); } }
@@ -141,7 +128,8 @@ public class HomeworkController {
     LocalDateTime date = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
     LocalDateTime firstPossibleDate = LocalDateTime.parse("1900-01-01T00:00:00");
 
-    if(date.isBefore(firstPossibleDate)) { throw new NotValidException("incorrectDate"); }
+    // Checking if date of homework is valid and if deadline is not before start date of homework
+    if(date.isBefore(firstPossibleDate) || deadline.isBefore(date)) { throw new NotValidException("incorrectDate"); }
     
     // Checking if isMarked is boolean
     if(request.getIsMarked() != true && request.getIsMarked() != false) { throw new NotValidException("incorrectIsMarked"); }
@@ -259,17 +247,14 @@ public class HomeworkController {
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
-    // Deadline cannot be earlier than the current date
-    LocalDateTime deadline = null;
+    // Deadline validation
+    LocalDateTime deadline;
     Long milliseconds;
+
     if(request.getDeadline() != null) {
       milliseconds = request.getDeadline();
-
       deadline = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-      LocalDateTime currentDateTime = LocalDateTime.now();
-
-      if(deadline.isBefore(currentDateTime)) { throw new NotValidException("incorrectDeadline"); }
-    }
+    } else { throw new NotValidException("incorrectDeadline"); }
 
     // Estimated time check
     if(request.getEstimatedTime() != 0) { if(request.getEstimatedTime() < 0 || request.getEstimatedTime() > ((500 *60) + 59)) { throw new NotValidException("incorrectEstimatedTime"); } }
@@ -281,7 +266,8 @@ public class HomeworkController {
     LocalDateTime date = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
     LocalDateTime firstPossibleDate = LocalDateTime.parse("1900-01-01T00:00:00");
 
-    if(date.isBefore(firstPossibleDate)) { throw new NotValidException("incorrectDate"); }
+    // Checking if date of homework is valid and if deadline is not before start date of homework
+    if(date.isBefore(firstPossibleDate) || deadline.isBefore(date)) { throw new NotValidException("incorrectDate"); }
 
     // Checking if isMarked is boolean
     if(request.getIsMarked() != true && request.getIsMarked() != false) { throw new NotValidException("incorrectIsMarked"); }
