@@ -25,7 +25,6 @@ public class UserModel {
   @Column(nullable = false)
   private String password;
 
-  @Size(max = 1)
   @Column(nullable = false)
   private Short type; // 1 - student, 2 - teacher
 
@@ -33,43 +32,43 @@ public class UserModel {
   private Boolean subscription;
 
   @PrimaryKeyJoinColumn
-  @OneToOne(mappedBy = "user")
+  @OneToOne(orphanRemoval = true, mappedBy = "user")
   private ForgotUserModel forgotUser;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<TeacherModel> teachers;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<SubjectModel> subjects;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<PlanElementModel> planElements;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<UniversityModel> universities;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<TypeModel> types;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<EventModel> events;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<MaterialModel> materials;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<HomeworkModel> homeworks;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "user")
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<MarkModel> marks;
 
   public UserModel(String email, String password, Short type) {

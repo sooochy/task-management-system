@@ -89,6 +89,8 @@ public class MarkController {
     // In request: mark, date, description (optional), eventId/homeworkId/tstId (two of them has to be null), [userEmail, userToken]
     // In response: if added (OK), mark
 
+    // TODO: Checking if date is not before start date of homework/event
+    
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
@@ -184,6 +186,8 @@ public class MarkController {
   public ResponseEntity<DefaultMarkStatus> editMark(@RequestBody EditMarkRequest request) {
     // In request: id, mark, date, description (optional), eventId/homeworkId/tstId (two of them has to be null), [userEmail, userToken]
     // In response: if added (OK), mark
+
+    // TODO: Checking if date is not before start date of homework/event
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
