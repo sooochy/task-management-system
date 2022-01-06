@@ -5,12 +5,12 @@ import com.tms.spring.email.SendEmailTLS;
 import com.tms.spring.model.HomeworkModel;
 import java.time.format.DateTimeFormatter;
 
-public class NotificationEmail {
+public class NotificationHomeworkEmail {
     private final String email;
     private final String language;
     private final HomeworkModel homework;
 
-    public NotificationEmail(String email, String language, HomeworkModel homework) {
+    public NotificationHomeworkEmail(String email, String language, HomeworkModel homework) {
         this.email = email;
         this.language = language;
         this.homework = homework;
@@ -77,7 +77,7 @@ public class NotificationEmail {
                 messageSubject = "[TMS] The deadline for the task has expired.";
                 messageContent = "<body><h3>Hello there,</h3>" + 
                 "Deadline (" + deadline.getDayOfMonth() + " " + deadline.getMonth() + " " + deadline.getYear() + 
-                " at " + formattedDateTime.substring(11, 13) + ":"  + formattedDateTime.substring(11, 13) + " " + formattedDateTime.substring(17, 19) + ") " + 
+                " at " + formattedDateTime.substring(11, 13) + ":"  + formattedDateTime.substring(14, 16) + " " + formattedDateTime.substring(17, 19) + ") " + 
                 "for completing the task: " + "'" + name + "' has just expired." + 
                 
                 "<br>Remember about the next ones!" +
@@ -87,7 +87,7 @@ public class NotificationEmail {
                 messageContent = "<body><h3>Hello there,</h3>" + 
                 "Just a reminder, that the deadline for completing your task: '" + name + 
                 "' expires on " + deadline.getDayOfMonth() + " " + deadline.getMonth() + " " + deadline.getYear() + 
-                " at " + formattedDateTime.substring(11, 13) + ":"  + formattedDateTime.substring(11, 13) + " " + formattedDateTime.substring(17, 19) + "." +  
+                " at " + formattedDateTime.substring(11, 13) + ":"  + formattedDateTime.substring(14, 16) + " " + formattedDateTime.substring(17, 19) + "." +  
                 
                 "<br>Godspeed!" +
                 "<br>[TMS]</body>";

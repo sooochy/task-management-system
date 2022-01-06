@@ -61,4 +61,14 @@ public class FileModel {
     this.event = null;
     this.size = size;
   }
+
+  public FileModel(String name, String type, byte[] data, EventModel event, Long size) {
+    this.name = name;
+    this.type = type;
+    this.data = data;
+    this.material = null;
+    this.homework = null;
+    this.event = event;
+    this.size = size;
+  }
 }

@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.stereotype.Service;
 import com.tms.spring.repository.FileRepository;
 import com.tms.spring.repository.EventRepository;
+import com.tms.spring.repository.EventRepository;
 import com.tms.spring.repository.HomeworkRepository;
 import com.tms.spring.repository.MaterialRepository;
 import com.tms.spring.exception.FileStorageException;
@@ -21,6 +22,9 @@ public class FileStorageService {
 
     @Autowired
     private FileRepository fileRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
 
     @Autowired
     private MaterialRepository materialRepository;
@@ -59,6 +63,25 @@ public class FileStorageService {
 
             HomeworkModel homework = homeworkRepository.findOneById(homeworkId);
             FileModel fileModel = new FileModel(fileName, file.getContentType(), file.getBytes(), homework, file.getSize());
+
+            return fileRepository.saveAndFlush(fileModel);
+        } catch (IOException ex) {
+            throw new FileStorageException("couldNotStoreFile");
+        }
+    }
+
+    public FileModel storeEventFile(MultipartFile file, Long eventId) {
+        // Normalize file name
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+
+        try {
+            // Check if the file's name contains invalid characters
+            if(fileName.contains("..")) {
+                throw new FileStorageException("invalidPathSequence");
+            }
+
+            EventModel event = eventRepository.findOneById(eventId);
+            FileModel fileModel = new FileModel(fileName, file.getContentType(), file.getBytes(), event, file.getSize());
 
             return fileRepository.saveAndFlush(fileModel);
         } catch (IOException ex) {

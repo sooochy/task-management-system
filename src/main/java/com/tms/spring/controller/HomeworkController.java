@@ -145,7 +145,7 @@ public class HomeworkController {
     
     if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
 
-    // Language validation
+    // Language validation needed for email notification
     if(request.getLanguage() != null && !request.getLanguage().equals("")) {
       switch(request.getLanguage()) {
         case "pl":
@@ -283,7 +283,7 @@ public class HomeworkController {
     
     if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
 
-    // Language validation
+    // Language validation needed for email notification
     if(request.getLanguage() != null && !request.getLanguage().equals("")) {
       switch(request.getLanguage()) {
         case "pl":
@@ -383,7 +383,7 @@ public class HomeworkController {
     // Setting homework's notifications
     editedHomework.setNotifications(notifications);
 
-    // Saving material with edited data
+    // Saving homework with edited data
     homeworkRepository.saveAndFlush(editedHomework);
 
     return new ResponseEntity<>(new DefaultHomeworkStatus("homeworkEdited", editedHomework), HttpStatus.ACCEPTED);

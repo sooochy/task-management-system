@@ -8,13 +8,16 @@ import java.time.LocalDateTime;
 import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import com.tms.spring.model.UserModel;
+import com.tms.spring.model.EventModel;
 import com.tms.spring.model.HomeworkModel;
 import com.tms.spring.model.NotificationModel;
-import com.tms.spring.email.NotificationEmail;
 import com.tms.spring.exception.UserNotExists;
 import org.springframework.stereotype.Component;
 import com.tms.spring.repository.UserRepository;
+import com.tms.spring.repository.EventRepository;
+import com.tms.spring.email.NotificationEventEmail;
 import com.tms.spring.repository.HomeworkRepository;
+import com.tms.spring.email.NotificationHomeworkEmail;
 import com.tms.spring.repository.NotificationRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,9 @@ public class NotificationSender {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    EventRepository eventRepository;
     
     @Autowired
     HomeworkRepository homeworkRepository;
@@ -39,9 +45,11 @@ public class NotificationSender {
 	@Scheduled(fixedRate = 30000)
 	public void checkAlertDate() {
         UserModel user;
+        EventModel event;
         HomeworkModel homework;
-        NotificationEmail email;
         NotificationModel notification;
+        NotificationEventEmail eventEmail;
+        NotificationHomeworkEmail homeworkEmail;
         List<NotificationModel> notifications = Collections.<NotificationModel>emptyList();
 
         // Looking for all notifications in database
@@ -54,7 +62,7 @@ public class NotificationSender {
         for(Integer i = 0; i < notifications.size(); i++) {
             notification = notifications.get(i);
 
-            if(notification.getIsSent().equals(false) && notification.getAlertDate().isBefore(currentTime)) {             
+            if(notification.getAlertDate().isBefore(currentTime) && notification.getHomework() != null  && notification.getEvent() == null && notification.getIsSent().equals(false)) {             
                 // Marking the notification as sent
                 notification.setIsSent(true);
 
@@ -70,8 +78,26 @@ public class NotificationSender {
                 if(user == null) { throw new UserNotExists("userNotExists"); }
 
                 // Sending email to user
-                email = new NotificationEmail(user.getEmail(), notification.getLanguage(), homework);
-                email.sendEmail();
+                homeworkEmail = new NotificationHomeworkEmail(user.getEmail(), notification.getLanguage(), homework);
+                homeworkEmail.sendEmail();
+
+                // Saving notification as sent
+                notificationRepository.saveAndFlush(notification);
+            } else if(notification.getAlertDate().isBefore(currentTime) && notification.getHomework() == null  && notification.getEvent() != null && notification.getIsSent().equals(false)) {
+                // Marking the notification as sent
+                notification.setIsSent(true);
+
+                // Looking for user's notification email and language through event table
+                event = eventRepository.findOneById(notification.getEvent().getId());
+                if(event == null) { throw new UserNotExists("eventNotExists"); }
+
+                // Checking to which user the notification should be sent
+                user = userRepository.findOneById(event.getUser().getId());
+                if(user == null) { throw new UserNotExists("userNotExists"); }
+
+                // Sending email to user
+                eventEmail = new NotificationEventEmail(user.getEmail(), notification.getLanguage(), event);
+                eventEmail.sendEmail();
 
                 // Saving notification as sent
                 notificationRepository.saveAndFlush(notification);
