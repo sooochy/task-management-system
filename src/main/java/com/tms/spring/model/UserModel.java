@@ -68,6 +68,10 @@ public class UserModel {
   @OneToMany(mappedBy = "user")
   private List<HomeworkModel> homeworks;
 
+  @JsonIgnore
+  @OneToMany(mappedBy = "user")
+  private List<MarkModel> marks;
+
   public UserModel(String email, String password, Short type) {
     this.email = email;
     this.password = password;

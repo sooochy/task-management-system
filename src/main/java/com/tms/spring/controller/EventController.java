@@ -107,6 +107,7 @@ public class EventController {
 
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
+    if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Event's start date validation
@@ -136,8 +137,8 @@ public class EventController {
     
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType;
+
     if(request.getTstId() != null && request.getTstId() != 0) {
-      System.out.println("tu");
       teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
       if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
 
@@ -250,6 +251,7 @@ public class EventController {
 
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
+    if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Event's start date validation
@@ -279,6 +281,7 @@ public class EventController {
 
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType;
+
     if(request.getTstId() != null && request.getTstId() != 0) {
       teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
       if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }

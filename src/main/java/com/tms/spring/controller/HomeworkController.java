@@ -107,6 +107,7 @@ public class HomeworkController {
 
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
+    if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Deadline validation
@@ -245,6 +246,7 @@ public class HomeworkController {
 
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
+    if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Deadline validation

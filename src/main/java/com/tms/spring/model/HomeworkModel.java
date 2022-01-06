@@ -40,7 +40,7 @@ public class HomeworkModel {
   private Boolean isDone;
 
   @JsonIgnore
-  @OneToOne(mappedBy = "homework")
+  @OneToOne(orphanRemoval = true, mappedBy = "homework")
   private MarkModel mark;
 
   @OneToMany(orphanRemoval = true, mappedBy = "homework")

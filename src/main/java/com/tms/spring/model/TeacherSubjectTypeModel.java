@@ -48,6 +48,10 @@ public class TeacherSubjectTypeModel {
   @OneToMany(orphanRemoval = true, mappedBy = "teacherSubjectType")
   private List<MaterialModel> materials;
 
+  @JsonIgnore
+  @OneToMany(orphanRemoval = true, mappedBy = "teacherSubjectType")
+  private List<MarkModel> marks;
+
   public TeacherSubjectTypeModel(TeacherModel teacher, SubjectModel subject, TypeModel type) {
     this.teacher = teacher;
     this.subject = subject;

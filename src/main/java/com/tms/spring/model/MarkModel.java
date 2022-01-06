@@ -5,6 +5,7 @@ import lombok.Getter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import javax.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
@@ -31,4 +32,36 @@ public class MarkModel {
   @OneToOne
   @JoinColumn(name = "homework_id", referencedColumnName = "id")
   private HomeworkModel homework;
+
+  @ManyToOne
+  @JoinColumn(name = "teacherSubjectType_id")
+  private TeacherSubjectTypeModel teacherSubjectType;
+
+  @JsonIgnore
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserModel user;
+
+  public MarkModel() {}
+
+  public MarkModel(Float mark, LocalDateTime date, String description, EventModel event, HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+    this.mark = mark;
+    this.date = date;
+    this.description = description;
+    this.event = event;
+    this.homework = homework;
+    this.teacherSubjectType = teacherSubjectType;
+    this.user = user;
+  }
+
+  public MarkModel(Long id, Float mark, LocalDateTime date, String description, EventModel event, HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+    this.id = id;
+    this.mark = mark;
+    this.date = date;
+    this.description = description;
+    this.event = event;
+    this.homework = homework;
+    this.teacherSubjectType = teacherSubjectType;
+    this.user = user;
+  }
 }

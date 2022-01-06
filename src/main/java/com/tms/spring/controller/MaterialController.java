@@ -111,6 +111,7 @@ public class MaterialController {
 
     // Input data validation
     if(name.length() < 1 || name.length() > 100) { throw new NotValidException("incorrectName"); }
+    if(description == null) { description = ""; }
     if(!description.equals("")) { if(description.length() < 1 || description.length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Creating new localDate
@@ -174,6 +175,7 @@ public class MaterialController {
 
     // Input data validation
     if(name.length() < 1 || name.length() > 100) { throw new NotValidException("incorrectName"); }
+    if(description == null) { description = ""; }
     if(!description.equals("")) { if(description.length() < 1 || description.length() > 2048) { throw new NotValidException("incorrectDescription"); } }
 
     // Creating new localDate

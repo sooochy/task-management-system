@@ -34,7 +34,7 @@ public class EventModel {
   private Boolean isMarked;
 
   @JsonIgnore
-  @OneToOne(mappedBy = "event")
+  @OneToOne(orphanRemoval = true, mappedBy = "event")
   private MarkModel mark;
 
   @OneToMany(orphanRemoval = true, mappedBy = "event")
