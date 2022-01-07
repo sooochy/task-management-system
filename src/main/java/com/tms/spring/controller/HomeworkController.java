@@ -26,6 +26,7 @@ import com.tms.spring.exception.NotValidException;
 import com.tms.spring.exception.MaxUploadSizeExceededException;
 
 // Models
+import com.tms.spring.model.MarkModel;
 import com.tms.spring.model.UserModel;
 import com.tms.spring.model.TypeModel;
 import com.tms.spring.model.FileModel;
@@ -36,6 +37,7 @@ import com.tms.spring.model.NotificationModel;
 import com.tms.spring.model.TeacherSubjectTypeModel;
 
 // Repositories
+import com.tms.spring.repository.MarkRepository;
 import com.tms.spring.repository.UserRepository;
 import com.tms.spring.repository.TypeRepository;
 import com.tms.spring.repository.FileRepository;
@@ -67,6 +69,9 @@ public class HomeworkController {
   @Autowired
   TypeRepository typeRepository;
   
+  @Autowired
+  MarkRepository markRepository;
+
   @Autowired
   UserRepository userRepository;
 
@@ -223,6 +228,12 @@ public class HomeworkController {
     // Setting homework's notifications
     homework.setNotifications(notifications);
     
+    // Creating empty mark (later to update mark of homework in mark controller)
+    if(request.getIsMarked() == true) {
+      MarkModel mark = new MarkModel(homework, user);
+      markRepository.saveAndFlush(mark);
+    }
+
     return new ResponseEntity<>(new DefaultHomeworkStatus("homeworkAdded", homework), HttpStatus.CREATED);
   }
 
@@ -448,13 +459,18 @@ public class HomeworkController {
 
   @PostMapping("/get")
   public ResponseEntity<List<HomeworkModel>> getHomework(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of plan elements
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(user.getHomeworks(), HttpStatus.OK);

@@ -16,10 +16,8 @@ public class MarkModel {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(nullable = false)
   private Float mark;
 
-  @Column(nullable = false)
   private LocalDateTime date;
   
   @Size(max = 2048)
@@ -44,12 +42,20 @@ public class MarkModel {
 
   public MarkModel() {}
 
-  public MarkModel(Float mark, LocalDateTime date, String description, EventModel event, HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public MarkModel(HomeworkModel homework, UserModel user) {
+    this.homework = homework;
+    this.user = user;
+  }
+
+  public MarkModel(EventModel event, UserModel user) {
+    this.event = event;
+    this.user = user;
+  }
+
+  public MarkModel(Float mark, LocalDateTime date, String description, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.mark = mark;
     this.date = date;
     this.description = description;
-    this.event = event;
-    this.homework = homework;
     this.teacherSubjectType = teacherSubjectType;
     this.user = user;
   }

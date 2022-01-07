@@ -71,13 +71,18 @@ public class SignInController {
 
   @PostMapping("/checklogin")
   public ResponseEntity<DefaultSignInStatus> checkLogin(@RequestBody CheckLoginRequest request) {
-    // In request: email, token
+    // In request: type, email, token
     // In response: if exists (OK)
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(new DefaultSignInStatus("userExists"), HttpStatus.ACCEPTED);

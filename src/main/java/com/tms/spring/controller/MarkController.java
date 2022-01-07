@@ -86,10 +86,8 @@ public class MarkController {
 
   @PostMapping("/add")
   public ResponseEntity<DefaultMarkStatus> addMark(@RequestBody AddMarkRequest request) {
-    // In request: mark, date, description (optional), eventId/homeworkId/tstId (two of them has to be null), [userEmail, userToken]
+    // In request: mark, date, description (optional), tstId, [userEmail, userToken]
     // In response: if added (OK), mark
-
-    // TODO: Checking if date is not before start date of homework/event
     
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
@@ -117,48 +115,6 @@ public class MarkController {
     if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
     
-
-    // The grade (mark) must be either from an event or from the homework or additional grade on tst
-    if(Stream.of(request.getEventId(), request.getHomeworkId(), request.getTstId()).allMatch(value -> value != null)) { throw new NotValidException("tooManyIds"); }
-
-    Boolean ifMarked = false;
-    if(request.getEventId() != null) {
-        if(request.getHomeworkId() != null) { throw new NotValidException("incorrectHomework"); }
-        if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
-
-        ifMarked = markRepository.existsByEventIdAndUser(request.getEventId(), user);
-        if(ifMarked) { throw new UserExists("eventAlreadyMarked"); }
-    } 
-
-    else if(request.getHomeworkId() != null) {
-        if(request.getEventId() != null) { throw new NotValidException("incorrectEvent"); }
-        if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
-
-        ifMarked = markRepository.existsByHomeworkIdAndUser(request.getHomeworkId(), user);
-        if(ifMarked) { throw new UserExists("homeworkAlreadyMarked"); }
-    } 
-
-    else if(request.getTstId() != null) {
-        if(request.getEventId() != null) { throw new NotValidException("incorrectEvent"); }
-        if(request.getHomeworkId() != null) { throw new NotValidException("incorrectHomework"); }
-    } else { throw new NotValidException("emptyId"); }
-
-    // Looking for user's event by id
-    EventModel event = null;
-    if(request.getEventId() != null) {
-        event = eventRepository.findOneByIdAndUser(request.getEventId(), user);
-        if(event == null) { throw new UserNotExists("eventNotExists"); }
-        if(event.getIsMarked() == false) { throw new UserNotExists("eventNotMarked"); }
-    }
-    
-    // Looking for user's homework by id
-    HomeworkModel homework = null;
-    if(request.getHomeworkId() != null) {
-        homework = homeworkRepository.findOneByIdAndUser(request.getHomeworkId(), user);
-        if(homework == null) { throw new UserNotExists("homeworkNotExists"); }
-        if(homework.getIsMarked() == false) { throw new UserNotExists("homeworkNotMarked"); }
-    }
-    
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType = null;
     if(request.getTstId() != null) {
@@ -171,10 +127,10 @@ public class MarkController {
         TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
         
         if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
-    }
+    } else { throw new NotValidException("emptyTstId"); }
 
     // Creating and saving new mark of event/homework/tst
-    MarkModel mark = new MarkModel(request.getMark(), date, request.getDescription(), event, homework, teacherSubjectType, user);
+    MarkModel mark = new MarkModel(request.getMark(), date, request.getDescription(), teacherSubjectType, user);
     markRepository.saveAndFlush(mark);
 
     return new ResponseEntity<>(new DefaultMarkStatus("markAdded", mark), HttpStatus.CREATED);
@@ -186,8 +142,6 @@ public class MarkController {
   public ResponseEntity<DefaultMarkStatus> editMark(@RequestBody EditMarkRequest request) {
     // In request: id, mark, date, description (optional), eventId/homeworkId/tstId (two of them has to be null), [userEmail, userToken]
     // In response: if added (OK), mark
-
-    // TODO: Checking if date is not before start date of homework/event
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
@@ -219,7 +173,6 @@ public class MarkController {
     if(request.getDescription() == null) { request.setDescription(""); }
     if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
     
-
     // The grade (mark) must be either from an event or from the homework or additional grade on tst
     if(Stream.of(request.getEventId(), request.getHomeworkId(), request.getTstId()).allMatch(value -> value != null)) { throw new NotValidException("tooManyIds"); }
 
@@ -229,7 +182,7 @@ public class MarkController {
         if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
 
         ifMarked = markRepository.existsByEventIdAndUser(request.getEventId(), user);
-        if(ifMarked) { throw new UserExists("eventAlreadyMarked"); }
+        if(ifMarked && mark.getMark() != null) { throw new UserExists("eventAlreadyMarked"); }
     } 
 
     else if(request.getHomeworkId() != null) {
@@ -237,7 +190,7 @@ public class MarkController {
         if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
 
         ifMarked = markRepository.existsByHomeworkIdAndUser(request.getHomeworkId(), user);
-        if(ifMarked) { throw new UserExists("homeworkAlreadyMarked"); }
+        if(ifMarked && mark.getMark() != null) { throw new UserExists("homeworkAlreadyMarked"); }
     } 
 
     else if(request.getTstId() != null) {
@@ -245,12 +198,15 @@ public class MarkController {
         if(request.getHomeworkId() != null) { throw new NotValidException("incorrectHomework"); }
     } else { throw new NotValidException("emptyId"); }
 
+    // TODO: Checking if date is not before start date of homework/event
+
     // Looking for user's event by id
     EventModel event = null;
     if(request.getEventId() != null) {
         event = eventRepository.findOneByIdAndUser(request.getEventId(), user);
         if(event == null) { throw new UserNotExists("eventNotExists"); }
         if(event.getIsMarked() == false) { throw new UserNotExists("eventNotMarked"); }
+        if(date.isBefore(event.getStartDate())) { throw new NotValidException("incorrectEventMarkDate"); }
     }
     
     // Looking for user's homework by id
@@ -259,6 +215,7 @@ public class MarkController {
         homework = homeworkRepository.findOneByIdAndUser(request.getHomeworkId(), user);
         if(homework == null) { throw new UserNotExists("homeworkNotExists"); }
         if(homework.getIsMarked() == false) { throw new UserNotExists("homeworkNotMarked"); }
+        if(date.isBefore(homework.getDate())) { throw new NotValidException("incorrectHomeworMarkkDate"); }
     }
     
     // Looking for user's TST by id
@@ -310,13 +267,18 @@ public class MarkController {
 
   @PostMapping("/get")
   public ResponseEntity<List<MarkModel>> getMarks(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of marks
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(user.getMarks(), HttpStatus.OK);

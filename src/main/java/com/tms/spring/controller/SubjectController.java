@@ -161,13 +161,18 @@ public class SubjectController {
 
   @PostMapping("/types/get")
   public ResponseEntity<List<TypeModel>> getTypes(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of types by userId
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(user.getTypes(), HttpStatus.OK);
@@ -407,7 +412,7 @@ public class SubjectController {
 
   @PostMapping("/user/get")
   public ResponseEntity<List<SubjectModel>> getSubjects(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of subjects by userId
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
@@ -415,7 +420,12 @@ public class SubjectController {
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
     }
-    
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
+    }
+
     return new ResponseEntity<>(user.getSubjects(), HttpStatus.OK);
   }
 }

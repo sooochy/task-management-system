@@ -228,13 +228,18 @@ public class PlanElementController {
 
   @PostMapping("/get")
   public ResponseEntity<List<PlanElementModel>> getPlanElements(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of plan elements
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+    
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(user.getPlanElements(), HttpStatus.OK);

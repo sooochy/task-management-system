@@ -26,6 +26,7 @@ import com.tms.spring.exception.NotValidException;
 import com.tms.spring.exception.MaxUploadSizeExceededException;
 
 // Models
+import com.tms.spring.model.MarkModel;
 import com.tms.spring.model.UserModel;
 import com.tms.spring.model.TypeModel;
 import com.tms.spring.model.FileModel;
@@ -36,6 +37,7 @@ import com.tms.spring.model.NotificationModel;
 import com.tms.spring.model.TeacherSubjectTypeModel;
 
 // Repositories
+import com.tms.spring.repository.MarkRepository;
 import com.tms.spring.repository.UserRepository;
 import com.tms.spring.repository.TypeRepository;
 import com.tms.spring.repository.FileRepository;
@@ -65,6 +67,9 @@ public class EventController {
 
   @Autowired
   TypeRepository typeRepository;
+
+  @Autowired
+  MarkRepository markRepository;
   
   @Autowired
   UserRepository userRepository;
@@ -227,6 +232,12 @@ public class EventController {
     
     // Setting event's notifications
     event.setNotifications(notifications);
+
+    // Creating empty mark (later to update mark of event in mark controller)
+    if(request.getIsMarked() == true) {
+      MarkModel mark = new MarkModel(event, user);
+      markRepository.saveAndFlush(mark);
+    }
 
     return new ResponseEntity<>(new DefaultEventStatus("eventAdded", event), HttpStatus.CREATED);
   }
@@ -429,13 +440,18 @@ public class EventController {
 
   @PostMapping("/get")
   public ResponseEntity<List<EventModel>> getEvents(@RequestBody CheckLoginRequest request) {
-    // In request: [userEmail, userToken]
+    // In request: type, [userEmail, userToken]
     // In response: list of events
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if accout type is valid
+    if(user.getType() != request.getType()) {
+      throw new UserNotExists("typeError");
     }
 
     return new ResponseEntity<>(user.getEvents(), HttpStatus.OK);

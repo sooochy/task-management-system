@@ -44,7 +44,7 @@ public class UserController {
 
   @PostMapping("/password")
   public ResponseEntity<DefaultUserStatus> editPassword(@RequestBody EditPasswordRequest request) {
-    // In request: id, newPassword [userEmail, userToken]
+    // In request: id, oldPassword, newPassword [userEmail, userToken]
     // In response: if changed password (OK), user
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
@@ -53,11 +53,17 @@ public class UserController {
       throw new UserNotExists("tokenNotValid");
     }
 
+    // Checking if old password is correct
+    HashingMachine hashingMachine = new HashingMachine(request.getOldPassword());
+    String hashedOldPassword = hashingMachine.hashingSha3();
+
+    if(!hashedOldPassword.equals(user.getPassword())) { throw new UserNotExists("invalidOldPassword"); }
+
     // New password validation
-    if(request.getNewPassword() == null || request.getNewPassword().length() < 6) { throw new NotValidException("invalidPassword"); }
+    if(request.getNewPassword() == null || request.getNewPassword().length() < 6) { throw new NotValidException("invalidNewPassword"); }
 
     // Hashing user's new password with SHA-3 256 coding - this password will be replaced with old one in database
-    HashingMachine hashingMachine = new HashingMachine(request.getNewPassword());
+    hashingMachine = new HashingMachine(request.getNewPassword());
     String hashedNewPassword = hashingMachine.hashingSha3();
 
     // Adding user to 'users' entity (replacing with new password)
