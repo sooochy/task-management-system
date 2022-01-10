@@ -53,6 +53,10 @@ public class UserModel {
 
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "user")
+  private List<FacultyModel> faculties;
+
+  @JsonIgnore
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<TypeModel> types;
 
   @JsonIgnore

@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.Getter;
 import java.util.List;
 import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
@@ -17,6 +18,7 @@ public class FieldModel {
   @Column(nullable = false)
   private String name;
 
+  @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "faculty_id", nullable = false)
   private FacultyModel faculty;
