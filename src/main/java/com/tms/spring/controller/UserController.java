@@ -22,9 +22,8 @@ import com.tms.spring.model.UserModel;
 import com.tms.spring.repository.UserRepository;
 
 // Requests
-import com.tms.spring.request.Users.EditTypeRequest;
 import com.tms.spring.request.Users.EditPasswordRequest;
-import com.tms.spring.request.Users.DeleteAccountRequest;
+import com.tms.spring.request.SignIn.CheckLoginRequest;
 
 // Responses
 import com.tms.spring.response.DefaultUserStatus;
@@ -44,7 +43,7 @@ public class UserController {
 
   @PostMapping("/password")
   public ResponseEntity<DefaultUserStatus> editPassword(@RequestBody EditPasswordRequest request) {
-    // In request: id, oldPassword, newPassword [userEmail, userToken]
+    // In request: oldPassword, newPassword [userEmail, userToken]
     // In response: if changed password (OK), user
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
@@ -53,7 +52,7 @@ public class UserController {
       throw new UserNotExists("tokenNotValid");
     }
 
-    // Checking if old password is correct
+    // Checking if old password is correct 
     HashingMachine hashingMachine = new HashingMachine(request.getOldPassword());
     String hashedOldPassword = hashingMachine.hashingSha3();
 
@@ -70,38 +69,38 @@ public class UserController {
     user.setPassword(hashedNewPassword);
     userRepository.save(user);
 
-    return new ResponseEntity<>(new DefaultUserStatus("passwordEdited", user), HttpStatus.CREATED);
+    return new ResponseEntity<>(new DefaultUserStatus("passwordEdited"), HttpStatus.CREATED);
   }
 
   /* ======================================================== [ ACCOUNT TYPE EDIT ] ===================================================== */
 
-  @PostMapping("/type")
-  public ResponseEntity<DefaultUserStatus> editAccount(@RequestBody EditTypeRequest request) {
-    // In request: id, [userEmail, userToken]
-    // In response: if changed type (OK), user
+  // @PostMapping("/type")
+  // public ResponseEntity<DefaultUserStatus> editAccount(@RequestBody CheckLoginRequest request) {
+  //   // In request: [userEmail, userToken]
+  //   // In response: if changed type (OK), user
 
-    // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
-    UserModel user = userRepository.findOneByEmail(request.getUserEmail());
-    if(user == null || !user.checkUser(request.getUserToken())) {
-      throw new UserNotExists("tokenNotValid");
-    }
+  //   // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
+  //   UserModel user = userRepository.findOneByEmail(request.getUserEmail());
+  //   if(user == null || !user.checkUser(request.getUserToken())) {
+  //     throw new UserNotExists("tokenNotValid");
+  //   }
 
-    Short accountType = user.getType();
-    Short student = 1, teacher = 2;
-    if(accountType.equals(student)) { user.setType(teacher); }
-    else { user.setType(student); }
+  //   Short accountType = user.getType();
+  //   Short student = 1, teacher = 2;
+  //   if(accountType.equals(student)) { user.setType(teacher); }
+  //   else { user.setType(student); }
 
-    // Adding user to 'users' entity (replacing with new type)
-    userRepository.save(user);
+  //   // Adding user to 'users' entity (replacing with new type)
+  //   userRepository.save(user);
 
-    return new ResponseEntity<>(new DefaultUserStatus("typeEdited", user), HttpStatus.CREATED);
-  }
+  //   return new ResponseEntity<>(new DefaultUserStatus("typeEdited"), HttpStatus.CREATED);
+  // }
 
   /* ========================================================== [ ACCOUNT DELETE ] ======================================================= */
 
   @PostMapping("/delete")
-  public ResponseEntity<DefaultUserStatus> deleteAccount(@RequestBody DeleteAccountRequest request) {
-    // In request: id, [userEmail, userToken]
+  public ResponseEntity<DefaultUserStatus> deleteAccount(@RequestBody CheckLoginRequest request) {
+    // In request: [userEmail, userToken]
     // In response: if deleted (OK), editedUser
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table

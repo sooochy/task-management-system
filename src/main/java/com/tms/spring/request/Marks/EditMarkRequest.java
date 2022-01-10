@@ -10,9 +10,6 @@ public class EditMarkRequest {
     private Float mark;
     private Long date;
     private String description;
-    private Long eventId;
-    private Long homeworkId;
-    private Long tstId;
     private String userEmail;
     private String userToken;
 }

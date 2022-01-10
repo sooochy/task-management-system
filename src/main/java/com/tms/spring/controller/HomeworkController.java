@@ -230,7 +230,7 @@ public class HomeworkController {
     
     // Creating empty mark (later to update mark of homework in mark controller)
     if(request.getIsMarked() == true) {
-      MarkModel mark = new MarkModel(homework, user);
+      MarkModel mark = new MarkModel(homework, teacherSubjectType, user);
       markRepository.saveAndFlush(mark);
     }
 
@@ -337,6 +337,24 @@ public class HomeworkController {
       if(request.getFiles() != null) { Arrays.asList(request.getFiles()).stream().map(file -> uploadFile(file, homework.getId())).collect(Collectors.toList()); }
     } catch (Exception e) {
       throw new MaxUploadSizeExceededException("fileTooLarge");
+    }
+
+    // Creating empty mark (later to update mark of homework in mark controller)
+    MarkModel mark;
+    if(request.getIsMarked() == true) {
+      if(homework.getIsMarked() == false) {
+        mark = new MarkModel(homework, teacherSubjectType, user);
+        markRepository.saveAndFlush(mark);
+      }
+    } else if (request.getIsMarked() == false) {
+      if(homework.getIsMarked() == true) {
+        mark = markRepository.findOneByHomeworkIdAndUser(homework.getId(), user);
+        if(mark != null) {
+          markRepository.delete(mark);
+        } else {
+          throw new UserNotExists("markNotExists");
+        }
+      }
     }
 
     // Setting name, description, date and TSS

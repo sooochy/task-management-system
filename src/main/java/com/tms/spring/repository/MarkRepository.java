@@ -8,7 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
 public interface MarkRepository extends JpaRepository<MarkModel, String> {
-    MarkModel findOneByIdAndUser(Long id, UserModel user);
     Boolean existsByEventIdAndUser(Long id, UserModel user);
     Boolean existsByHomeworkIdAndUser(Long id, UserModel user);
+
+    MarkModel findOneByIdAndUser(Long id, UserModel user);
+    MarkModel findOneByEventIdAndUser(Long id, UserModel user);
+    MarkModel findOneByHomeworkIdAndUser(Long id, UserModel user);
 }

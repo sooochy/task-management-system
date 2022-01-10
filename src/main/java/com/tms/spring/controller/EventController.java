@@ -155,6 +155,7 @@ public class EventController {
       if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
     } else { 
       teacherSubjectType = null; 
+      request.setIsMarked(false);
     }
 
     // Language validation needed for email notification
@@ -235,7 +236,7 @@ public class EventController {
 
     // Creating empty mark (later to update mark of event in mark controller)
     if(request.getIsMarked() == true) {
-      MarkModel mark = new MarkModel(event, user);
+      MarkModel mark = new MarkModel(event, teacherSubjectType, user);
       markRepository.saveAndFlush(mark);
     }
 
@@ -348,6 +349,24 @@ public class EventController {
       if(request.getFiles() != null) { Arrays.asList(request.getFiles()).stream().map(file -> uploadFile(file, event.getId())).collect(Collectors.toList()); }
     } catch (Exception e) {
       throw new MaxUploadSizeExceededException("fileTooLarge");
+    }
+
+    // Creating empty mark (later to update mark of event in mark controller)
+    MarkModel mark;
+    if(request.getIsMarked() == true) {
+      if(event.getIsMarked() == false) {
+        mark = new MarkModel(event, teacherSubjectType, user);
+        markRepository.saveAndFlush(mark);
+      }
+    } else if (request.getIsMarked() == false) {
+      if(event.getIsMarked()) {
+        mark = markRepository.findOneByEventIdAndUser(event.getId(), user);
+        if(mark != null) {
+          markRepository.delete(mark);
+        } else {
+          throw new UserNotExists("eventNotExists");
+        }
+      }
     }
 
     // Setting name, description, dates and optional TSS

@@ -108,7 +108,7 @@ public class MarkController {
       date = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
       if(date.isBefore(firstPossibleDate)) { throw new NotValidException("tooEarlyDate"); }
-      if(LocalDateTime.now().isBefore(date)) { throw new NotValidException("tooLateDate"); }
+      //if(LocalDateTime.now().isBefore(date)) { throw new NotValidException("tooLateDate"); }
     } else { throw new NotValidException("incorrectDate"); }
 
     // Optional description check
@@ -140,8 +140,11 @@ public class MarkController {
 
   @PostMapping("/edit")
   public ResponseEntity<DefaultMarkStatus> editMark(@RequestBody EditMarkRequest request) {
-    // In request: id, mark, date, description (optional), eventId/homeworkId/tstId (two of them has to be null), [userEmail, userToken]
+    // In request: id, mark, date, description (optional in event or homework), [userEmail, userToken]
     // In response: if added (OK), mark
+    // (EDYCJA: OPIS, DATA, OCENA)
+
+    // TODO: Checking if date is not before start date of homework/event
 
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
@@ -153,7 +156,7 @@ public class MarkController {
     MarkModel mark = markRepository.findOneByIdAndUser(request.getId(), user);
     if(mark == null) { throw new UserNotExists("markNotExists"); }
 
-    // Mark validation (UK grading system is done on the frontend side)
+    // Mark validation 
     if(request.getMark() == null || request.getMark() < 0 || request.getMark() > 6) { throw new NotValidException("incorrectMark"); }
 
     // The date on which the grade was received
@@ -166,44 +169,39 @@ public class MarkController {
       date = Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
       if(date.isBefore(firstPossibleDate)) { throw new NotValidException("tooEarlyDate"); }
-      if(LocalDateTime.now().isBefore(date)) { throw new NotValidException("tooLateDate"); }
+      // if(LocalDateTime.now().isBefore(date)) { throw new NotValidException("tooLateDate"); }
     } else { throw new NotValidException("incorrectDate"); }
 
-    // Optional description check
-    if(request.getDescription() == null) { request.setDescription(""); }
-    if(!request.getDescription().equals("")) { if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { throw new NotValidException("incorrectDescription"); } }
-    
-    // The grade (mark) must be either from an event or from the homework or additional grade on tst
-    if(Stream.of(request.getEventId(), request.getHomeworkId(), request.getTstId()).allMatch(value -> value != null)) { throw new NotValidException("tooManyIds"); }
+    // Checking what type of mark is going to be edited
+    if(Stream.of(mark.getHomework(), mark.getEvent()).allMatch(value -> value != null)) { throw new NotValidException("tooManyIds"); }
 
-    Boolean ifMarked = false;
-    if(request.getEventId() != null) {
-        if(request.getHomeworkId() != null) { throw new NotValidException("incorrectHomework"); }
-        if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
+    // Optional description check (obligatory when tst, optional on events and homework):
+    // if its other mark
+    if(Stream.of(mark.getHomework(), mark.getEvent()).allMatch(value -> value == null)) { 
+      if(request.getDescription() != null && !request.getDescription().equals("")) { 
+        if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { 
+          throw new NotValidException("incorrectDescription"); 
+        } 
+      } else {
+        throw new NotValidException("emptyDescription"); 
+      }
+    }
 
-        ifMarked = markRepository.existsByEventIdAndUser(request.getEventId(), user);
-        if(ifMarked && mark.getMark() != null) { throw new UserExists("eventAlreadyMarked"); }
-    } 
-
-    else if(request.getHomeworkId() != null) {
-        if(request.getEventId() != null) { throw new NotValidException("incorrectEvent"); }
-        if(request.getTstId() != null) { throw new NotValidException("incorrectTst"); }
-
-        ifMarked = markRepository.existsByHomeworkIdAndUser(request.getHomeworkId(), user);
-        if(ifMarked && mark.getMark() != null) { throw new UserExists("homeworkAlreadyMarked"); }
-    } 
-
-    else if(request.getTstId() != null) {
-        if(request.getEventId() != null) { throw new NotValidException("incorrectEvent"); }
-        if(request.getHomeworkId() != null) { throw new NotValidException("incorrectHomework"); }
-    } else { throw new NotValidException("emptyId"); }
-
-    // TODO: Checking if date is not before start date of homework/event
+    // if its homework/event mark
+    if((mark.getHomework() != null && mark.getEvent() == null) || (mark.getHomework() == null && mark.getEvent() != null)) {
+      if(request.getDescription() != null && !request.getDescription().equals("")) { 
+        if(request.getDescription().length() < 1 || request.getDescription().length() > 2048) { 
+          throw new NotValidException("incorrectDescription"); 
+        } 
+      } else {
+        request.setDescription("");
+      }
+    }
 
     // Looking for user's event by id
     EventModel event = null;
-    if(request.getEventId() != null) {
-        event = eventRepository.findOneByIdAndUser(request.getEventId(), user);
+    if(mark.getEvent() != null) {
+        event = eventRepository.findOneByIdAndUser(mark.getEvent().getId(), user);
         if(event == null) { throw new UserNotExists("eventNotExists"); }
         if(event.getIsMarked() == false) { throw new UserNotExists("eventNotMarked"); }
         if(date.isBefore(event.getStartDate())) { throw new NotValidException("incorrectEventMarkDate"); }
@@ -211,32 +209,21 @@ public class MarkController {
     
     // Looking for user's homework by id
     HomeworkModel homework = null;
-    if(request.getHomeworkId() != null) {
-        homework = homeworkRepository.findOneByIdAndUser(request.getHomeworkId(), user);
+    if(mark.getHomework() != null) {
+        homework = homeworkRepository.findOneByIdAndUser(mark.getHomework().getId(), user);
         if(homework == null) { throw new UserNotExists("homeworkNotExists"); }
         if(homework.getIsMarked() == false) { throw new UserNotExists("homeworkNotMarked"); }
         if(date.isBefore(homework.getDate())) { throw new NotValidException("incorrectHomeworMarkkDate"); }
     }
-    
-    // Looking for user's TST by id
-    TeacherSubjectTypeModel teacherSubjectType = null;
-    if(request.getTstId() != null) {
-        teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
-        if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
 
-        // Checking if user has request's tstId assigned
-        TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
-        SubjectModel subject = subjectRepository.findOneByIdAndUser(teacherSubjectType.getSubject().getId(), user);
-        TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
-        
-        if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
-    }
+    // Saving new edited mark of event/homework/tst
+    // MarkModel editedMark = new MarkModel(request.getId(), request.getMark(), date, request.getDescription(), event, homework, teacherSubjectType, user);
+    mark.setMark(request.getMark());
+    mark.setDate(date);
+    mark.setDescription(request.getDescription());
+    markRepository.saveAndFlush(mark);
 
-    // Creating and saving new mark of event/homework/tst
-    MarkModel editedMark = new MarkModel(request.getId(), request.getMark(), date, request.getDescription(), event, homework, teacherSubjectType, user);
-    markRepository.saveAndFlush(editedMark);
-
-    return new ResponseEntity<>(new DefaultMarkStatus("markEdited", editedMark), HttpStatus.ACCEPTED);
+    return new ResponseEntity<>(new DefaultMarkStatus("markEdited", mark), HttpStatus.ACCEPTED);
   }
 
   /* ========================================================== [ DELETE MARK ] ===================================================== */
@@ -255,6 +242,14 @@ public class MarkController {
     MarkModel mark = markRepository.findOneByIdAndUser(request.getId(), user);
     if(mark == null) {
       throw new UserNotExists("markNotExists");
+    }
+
+    if(mark.getHomework() != null) {
+      HomeworkModel homework = homeworkRepository.findOneByIdAndUser(mark.getHomework().getId(), user);
+      homework.setIsMarked(false);
+    } else if (mark.getEvent() != null) {
+      EventModel event = eventRepository.findOneByIdAndUser(mark.getEvent().getId(), user);
+      event.setIsMarked(false);
     }
 
     // Deleting mark

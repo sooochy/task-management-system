@@ -42,13 +42,15 @@ public class MarkModel {
 
   public MarkModel() {}
 
-  public MarkModel(HomeworkModel homework, UserModel user) {
+  public MarkModel(HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.homework = homework;
+    this.teacherSubjectType = teacherSubjectType;
     this.user = user;
   }
 
-  public MarkModel(EventModel event, UserModel user) {
+  public MarkModel(EventModel event, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.event = event;
+    this.teacherSubjectType = teacherSubjectType;
     this.user = user;
   }
 
