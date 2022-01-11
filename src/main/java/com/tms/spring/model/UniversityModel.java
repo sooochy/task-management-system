@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.Getter;
 import java.util.List;
 import javax.persistence.*;
+import java.util.Collections;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -31,11 +32,13 @@ public class UniversityModel {
   public UniversityModel(String name, UserModel user) {
     this.name = name;
     this.user = user;
+    this.faculties = Collections.<FacultyModel>emptyList();
   }
 
   public UniversityModel(Long id, String name, UserModel user) {
     this.id = id;
     this.name = name;
     this.user = user;
+    this.faculties = Collections.<FacultyModel>emptyList();
   }
 }

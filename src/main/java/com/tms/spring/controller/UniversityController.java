@@ -75,21 +75,21 @@ public class UniversityController {
     // Input data validation
     if(request.getName().length() > 200 && request.getName().length() < 1) { throw new NotValidException("nameNotValid"); }
 
-    // Check if faculty already exists
-    Boolean ifExists = facultyRepository.existsByNameAndUser(request.getName(), user);
-    if(ifExists) {
-        throw new UserExists("facultyAlreadyExists");
-    }
-
     // Check if university exists
     UniversityModel university = universityRepository.findOneByIdAndUser(request.getUniversityId(), user);
     if(university == null) {
         throw new UserNotExists("universityNotExists");
     }
 
+    // Check if faculty already exists
+    Boolean ifExists = facultyRepository.existsByNameAndUniversityAndUser(request.getName(), university, user);
+    if(ifExists) {
+        throw new UserExists("facultyAlreadyExists");
+    }
+
     // Saving new faculty to database
     FacultyModel faculty = new FacultyModel(request.getName(), university, user);
-    facultyRepository.save(faculty);
+    facultyRepository.saveAndFlush(faculty);
 
     return new ResponseEntity<>(new DefaultFacultyStatus("facultyAdded", faculty), HttpStatus.CREATED);
   }
@@ -116,8 +116,14 @@ public class UniversityController {
     // Input data validation
     if(request.getName().length() > 200 && request.getName().length() < 1) { throw new NotValidException("nameNotValid"); }
 
-    // Chcecking if faculty that user want to set as new already exists 
-    Boolean ifExists = facultyRepository.existsByNameAndUser(request.getName(), user);
+    // Check if university exists
+    UniversityModel university = universityRepository.findOneByIdAndUser(faculty.getUniversity().getId(), user);
+    if(university == null) {
+        throw new UserNotExists("universityNotExists");
+    }
+
+    // Check if faculty already exists
+    Boolean ifExists = facultyRepository.existsByNameAndUniversityAndUser(request.getName(), university, user);
     if(ifExists) {
         throw new UserExists("facultyAlreadyExists");
     }
@@ -273,7 +279,7 @@ public class UniversityController {
     // Deleting university
     universityRepository.delete(university);
 
-    return new ResponseEntity<>(new DefaultUniversityStatus("eventDeleted"), HttpStatus.ACCEPTED);
+    return new ResponseEntity<>(new DefaultUniversityStatus("universityDeleted"), HttpStatus.ACCEPTED);
   }
 
   /* =========================================================== [ GET UNIVERSITIES ] ======================================================= */
