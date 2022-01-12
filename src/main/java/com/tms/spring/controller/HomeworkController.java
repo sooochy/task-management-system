@@ -139,17 +139,22 @@ public class HomeworkController {
     
     // Checking if isMarked is boolean
     if(request.getIsMarked() != true && request.getIsMarked() != false) { throw new NotValidException("incorrectIsMarked"); }
-
+    if(user.getType() == 2) { request.setIsMarked(false); }
+    
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
     if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
 
     // Checking if user has request's tstId assigned
-    TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
     SubjectModel subject = subjectRepository.findOneByIdAndUser(teacherSubjectType.getSubject().getId(), user);
     TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
     
-    if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
+    if(user.getType() == 1) {
+      TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
+      if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+    } else {
+      if(Stream.of(subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+    }
 
     // Language validation needed for email notification
     if(request.getLanguage() != null && !request.getLanguage().equals("")) {
@@ -284,17 +289,22 @@ public class HomeworkController {
 
     // Checking if isMarked is boolean
     if(request.getIsMarked() != true && request.getIsMarked() != false) { throw new NotValidException("incorrectIsMarked"); }
-
+    if(user.getType() == 2) { request.setIsMarked(false); }
+    
     // Looking for user's TST by id
     TeacherSubjectTypeModel teacherSubjectType = teacherSubjectTypeRepository.findOneById(request.getTstId());
     if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
 
     // Checking if user has request's tstId assigned
-    TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
     SubjectModel subject = subjectRepository.findOneByIdAndUser(teacherSubjectType.getSubject().getId(), user);
     TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
     
-    if(Stream.of(teacher, subject, type).anyMatch(value -> value == null)) { throw new NotValidException("incorrectTST"); }
+    if(user.getType() == 1) {
+      TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
+      if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+    } else {
+      if(Stream.of(subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+    }
 
     // Language validation needed for email notification
     if(request.getLanguage() != null && !request.getLanguage().equals("")) {

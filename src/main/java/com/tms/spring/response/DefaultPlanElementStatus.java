@@ -10,8 +10,6 @@ import com.tms.spring.model.TeacherSubjectTypeModel;
 public class DefaultPlanElementStatus {
 	Integer statusCode;
 	String message;
-	Long id;
-	String name;
 	PlanElementModel planElement;
 	TeacherSubjectTypeModel teacherSubjectType;
 
