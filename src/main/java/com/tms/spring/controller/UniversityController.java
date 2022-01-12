@@ -162,24 +162,24 @@ public class UniversityController {
 
   /* ========================================================== [ GET FACULTIES ] ======================================================== */
 
-  @PostMapping("/faculties/get")
-  public ResponseEntity<List<FacultyModel>> deleteFaculty(@RequestBody CheckLoginRequest request) {
-    // In request: id, [userEmail, userToken]
-    // In response: if deleted (OK)
+  // @PostMapping("/faculties/get")
+  // public ResponseEntity<List<FacultyModel>> deleteFaculty(@RequestBody CheckLoginRequest request) {
+  //   // In request: id, [userEmail, userToken]
+  //   // In response: if deleted (OK)
 
-    // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
-    UserModel user = userRepository.findOneByEmail(request.getUserEmail());
-    if(user == null || !user.checkUser(request.getUserToken())) {
-      throw new UserNotExists("tokenNotValid");
-    }
+  //   // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
+  //   UserModel user = userRepository.findOneByEmail(request.getUserEmail());
+  //   if(user == null || !user.checkUser(request.getUserToken())) {
+  //     throw new UserNotExists("tokenNotValid");
+  //   }
 
-    // Checking if accout type is valid
-    if(user.getType() != request.getType()) {
-      throw new UserNotExists("typeError");
-    }
+  //   // Checking if accout type is valid
+  //   if(user.getType() != request.getType()) {
+  //     throw new UserNotExists("typeError");
+  //   }
 
-    return new ResponseEntity<>(user.getFaculties(), HttpStatus.OK);
-  }
+  //   return new ResponseEntity<>(user.getFaculties(), HttpStatus.OK);
+  // }
 
   /* ************************************************************************************************************************************** */
   /*                                                              [ UNIVERSITIES ]                                                          */

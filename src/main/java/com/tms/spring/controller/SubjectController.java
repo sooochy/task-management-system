@@ -2,6 +2,7 @@ package com.tms.spring.controller;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +20,7 @@ import com.tms.spring.exception.NotValidException;
 // Models
 import com.tms.spring.model.UserModel;
 import com.tms.spring.model.TypeModel;
+import com.tms.spring.model.FieldModel;
 import com.tms.spring.model.TeacherModel;
 import com.tms.spring.model.SubjectModel;
 import com.tms.spring.model.TeacherSubjectTypeModel;
@@ -26,19 +28,23 @@ import com.tms.spring.model.TeacherSubjectTypeModel;
 // Repositories
 import com.tms.spring.repository.UserRepository;
 import com.tms.spring.repository.TypeRepository;
+import com.tms.spring.repository.FieldRepository;
 import com.tms.spring.repository.TeacherRepository;
 import com.tms.spring.repository.SubjectRepository;
 import com.tms.spring.repository.TeacherSubjectTypeRepository;
 
 // Requests
+import com.tms.spring.request.Subjects.Type;
 import com.tms.spring.request.Subjects.TeacherType;
 import com.tms.spring.request.Subjects.AddTypeRequest;
 import com.tms.spring.request.Subjects.EditTypeRequest;
 import com.tms.spring.request.SignIn.CheckLoginRequest;
 import com.tms.spring.request.Subjects.DeleteTypeRequest;
-import com.tms.spring.request.Subjects.AddUserSubjectRequest;
-import com.tms.spring.request.Subjects.EditUserSubjectRequest;
 import com.tms.spring.request.Subjects.DeleteUserSubjectRequest;
+import com.tms.spring.request.Subjects.AddTeacherSubjectRequest;
+import com.tms.spring.request.Subjects.AddStudentSubjectRequest;
+import com.tms.spring.request.Subjects.EditTeacherSubjectRequest;
+import com.tms.spring.request.Subjects.EditStudentSubjectRequest;
 
 // Responses
 import com.tms.spring.response.DefaultSubjectStatus;
@@ -48,12 +54,15 @@ import com.tms.spring.response.DefaultSubjectStatus;
 @RestController
 @RequestMapping("/subjects")
 public class SubjectController {
-
+  
   @Autowired
   TypeRepository typeRepository;
 
   @Autowired
   UserRepository userRepository;
+
+  @Autowired
+  FieldRepository fieldRepository;
 
   @Autowired
   SubjectRepository subjectRepository; 
@@ -178,11 +187,11 @@ public class SubjectController {
     return new ResponseEntity<>(user.getTypes(), HttpStatus.OK);
   }
 
-  /* ******************************************************************************************************************************* */
-  /*                                                             [ SUBJECTS ]                                                        */
-  /* ******************************************************************************************************************************* */
+  /* ****************************************************************************************************************************************** */
+  /*                                                               [ STUDENT SUBJECTS ]                                                         */
+  /* ****************************************************************************************************************************************** */
 
-  /* ========================================================= [ ADD SUBJECT ] ===================================================== */
+  /* =========================================================== [ ADD STUDENT SUBJECT ] ====================================================== */
 
   /* Request example:
   
@@ -204,8 +213,8 @@ public class SubjectController {
       
   */
 
-  @PostMapping("/user/add")
-  public ResponseEntity<DefaultSubjectStatus> addSubject(@RequestBody AddUserSubjectRequest request) {
+  @PostMapping("/student/add")
+  public ResponseEntity<DefaultSubjectStatus> addStudentSubject(@RequestBody AddStudentSubjectRequest request) {
     // In request: name, teacherType[ {typeId, teacherId}, ...], [userEmail, userToken]
     // In response: if added (OK), id
 
@@ -268,7 +277,7 @@ public class SubjectController {
     return new ResponseEntity<>(new DefaultSubjectStatus("subjectAdded", subject.getId()), HttpStatus.CREATED);
   }
 
-  /* ========================================================= [ EDIT SUBJECT ] ====================================================== */
+  /* =========================================================== [ EDIT STUDENT SUBJECT ] ====================================================== */
 
   /* Request example:
 
@@ -294,8 +303,8 @@ public class SubjectController {
 
   */
 
-  @PostMapping("/user/edit")
-  public ResponseEntity<DefaultSubjectStatus> editSubject(@RequestBody EditUserSubjectRequest request) {
+  @PostMapping("/student/edit")
+  public ResponseEntity<DefaultSubjectStatus> editStudentSubject(@RequestBody EditStudentSubjectRequest request) {
     // In request: id, name, teacherType[ {id, typeId, teacherId}, ...], [userEmail, userToken]
     // In response: if edited (OK)
 
@@ -383,9 +392,9 @@ public class SubjectController {
     return new ResponseEntity<>(new DefaultSubjectStatus("subjectEdited"), HttpStatus.ACCEPTED);
   }
 
-  /* ======================================================== [ DELETE SUBJECT ] ===================================================== */
+  /* =========================================================== [ DELETE USER SUBJECT ] ====================================================== */
 
-  @PostMapping("/user/delete")
+  @PostMapping("/delete")
   public ResponseEntity<DefaultSubjectStatus> deleteSubject(@RequestBody DeleteUserSubjectRequest request) {
     // In request: id, [userEmail, userToken]
     // In response: if deleted (OK)
@@ -408,9 +417,9 @@ public class SubjectController {
     return new ResponseEntity<>(new DefaultSubjectStatus("subjectDeleted"), HttpStatus.ACCEPTED);
   }
 
-  /* ========================================================== [ GET SUBJECT ] ====================================================== */
+  /* ============================================================ [ GET USER SUBJECTS ] ======================================================= */
 
-  @PostMapping("/user/get")
+  @PostMapping("/get")
   public ResponseEntity<List<SubjectModel>> getSubjects(@RequestBody CheckLoginRequest request) {
     // In request: type, [userEmail, userToken]
     // In response: list of subjects by userId
@@ -427,5 +436,180 @@ public class SubjectController {
     }
 
     return new ResponseEntity<>(user.getSubjects(), HttpStatus.OK);
+  }
+
+  /* ****************************************************************************************************************************************** */
+  /*                                                               [ TEACHER SUBJECTS ]                                                         */
+  /* ****************************************************************************************************************************************** */
+
+  /* =========================================================== [ ADD TEACHER SUBJECT ] ====================================================== */
+
+  @PostMapping("/teacher/add")
+  public ResponseEntity<DefaultSubjectStatus> addTeacherSubject(@RequestBody AddTeacherSubjectRequest request) {
+    // In request: name, types[ { typeId } ], fieldId, [userEmail, userToken]
+    // In response: if added (OK), subject
+    
+    // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
+    UserModel user = userRepository.findOneByEmail(request.getUserEmail());
+    if(user == null || !user.checkUser(request.getUserToken())) {
+      throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking if user has assigned type of subject and field
+    Long typeId;
+    TypeModel existingType;
+    Boolean ifTypeExists;
+
+    for(Integer i = 0; i < request.getTypes().size(); i++) {
+      ifTypeExists = typeRepository.existsByIdAndUser(request.getTypes().get(i).getTypeId(), user);
+      
+      if(!ifTypeExists) { throw new UserNotExists("typeNotExists"); }
+
+      for(Integer j = 0; j < request.getTypes().size(); j++) 
+        if(!i.equals(j)) 
+          if(request.getTypes().get(i).equalsType(request.getTypes().get(j))) 
+            throw new NotValidException("duplicated");
+    }
+
+    // Check if subject already exists
+    Boolean ifSubjectExists = subjectRepository.existsByNameAndUser(request.getName(), user);
+    if(ifSubjectExists) {
+      throw new UserExists("subjectExists");
+    }
+
+    // Input data validation
+    if(request.getName().length() > 100 && request.getName().length() < 2) { throw new NotValidException("nameNotValid"); }
+
+    // Checking if user has assigned fieldId
+    FieldModel field = fieldRepository.findOneByIdAndUser(request.getFieldId(), user);
+    if(field == null) {
+      throw new UserNotExists("fieldNotExists");
+    }
+
+    // Limiting groups to 5 
+    if(request.getTypes().size() > 5) {
+      throw new NotValidException("invalidGroupsNumber");
+    }
+
+    // Saving new subject to database
+    SubjectModel subject = new SubjectModel(request.getName(), field, user);
+    subjectRepository.saveAndFlush(subject);
+
+    // Saving typeId, subjectId, teacherId (null) to 'teacher_subject_type'
+    TypeModel type;
+    TeacherModel teacher = null;
+    TeacherSubjectTypeModel teacherSubjectType = new TeacherSubjectTypeModel();
+    List<TeacherSubjectTypeModel> teacherSubjectTypes = Collections.<TeacherSubjectTypeModel>emptyList();
+
+    for (Integer i = 0; i < request.getTypes().size(); i++) {
+      type = typeRepository.findOneById(request.getTypes().get(i).getTypeId());
+      
+      teacherSubjectType = new TeacherSubjectTypeModel(teacher, subject, type);
+      teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
+    }
+
+    // Looking for all TST with this subject to set
+    teacherSubjectTypes = teacherSubjectTypeRepository.findAllBySubjectId(subject.getId());
+    subject.setTeacherSubjectTypes(teacherSubjectTypes);
+
+    return new ResponseEntity<>(new DefaultSubjectStatus("subjectAdded", subject), HttpStatus.CREATED);
+  }
+
+  /* ========================================================== [ EDIT TEACHER SUBJECT ] ====================================================== */
+
+  @PostMapping("/teacher/edit")
+  public ResponseEntity<DefaultSubjectStatus> editTeacherSubject(@RequestBody EditTeacherSubjectRequest request) {
+    // In request: id, name, types[ { typeId } ], fieldId, [userEmail, userToken]
+    // In response: if edited (OK), subject
+
+    // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
+    UserModel user = userRepository.findOneByEmail(request.getUserEmail());
+    if(user == null || !user.checkUser(request.getUserToken())) {
+      throw new UserNotExists("tokenNotValid");
+    }
+
+    // Limiting groups to 5 
+    if(request.getTypes().size() > 5) {
+      throw new NotValidException("invalidGroupsNumber");
+    }
+
+    // Checking if user has assigned type of subject wanted to edit
+    Boolean ifTypeExists;
+    
+    for(Integer i = 0; i < request.getTypes().size(); i++) {
+      ifTypeExists = typeRepository.existsByIdAndUser(request.getTypes().get(i).getTypeId(), user);
+      
+      if(!ifTypeExists) { throw new UserNotExists("typeNotExists"); }
+
+      for(Integer j = 0; j < request.getTypes().size(); j++) 
+        if(!i.equals(j)) 
+          if(request.getTypes().get(i).equalsType(request.getTypes().get(j)))
+            throw new NotValidException("duplicated");
+    }
+
+    // Input data validation
+    if(request.getName().length() > 100 && request.getName().length() < 2) { throw new NotValidException("nameNotValid"); }
+
+    // Checking if user has this subject to edit
+    SubjectModel existingSubject = subjectRepository.findOneByIdAndUser(request.getId(), user);
+    if(existingSubject == null) {
+      throw new UserNotExists("subjectNotExists");
+    }
+
+    // Chcecking if name of subject user want to edit already exists in database
+    if(subjectRepository.existsByNameAndUserAndIdNot(request.getName(), user, request.getId())) {
+      throw new UserExists("subjectExists");
+    }
+
+    // Checking if user has assigned fieldId
+    FieldModel field = fieldRepository.findOneByIdAndUser(request.getFieldId(), user);
+    if(field == null) {
+      throw new UserNotExists("fieldNotExists");
+    }
+
+    // Saving subject to 'subject' table with updated data
+    existingSubject.setName(request.getName());
+    existingSubject.setField(field);
+    subjectRepository.saveAndFlush(existingSubject);
+
+    // Saving data with updated (edited) values
+    Type type;
+    TypeModel typeModel;
+    TeacherModel teacher = null;
+    TeacherSubjectTypeModel teacherSubjectType;
+    List<TeacherSubjectTypeModel> toDeleteTST = new ArrayList<>(existingSubject.getTeacherSubjectTypes());
+
+    for(Integer i = 0; i < request.getTypes().size(); i++) {
+      type = request.getTypes().get(i);
+
+      if(type.getId() != null) {
+        for(Integer j = 0; j < existingSubject.getTeacherSubjectTypes().size(); j++) {
+          teacherSubjectType = existingSubject.getTeacherSubjectTypes().get(j);
+          
+          if(type.getId().equals(teacherSubjectType.getId())) {
+            typeModel = typeRepository.findOneById(type.getTypeId());
+
+            toDeleteTST.remove(teacherSubjectType);
+
+            teacherSubjectType.setTeacher(teacher);
+            teacherSubjectType.setType(typeModel);
+            teacherSubjectTypeRepository.save(teacherSubjectType);
+          }
+        }
+      } else {
+        typeModel = typeRepository.findOneById(type.getTypeId());
+
+        teacherSubjectType = new TeacherSubjectTypeModel(teacher, existingSubject, typeModel);
+        teacherSubjectTypeRepository.save(teacherSubjectType);
+      }
+    }
+
+    teacherSubjectTypeRepository.deleteAll(toDeleteTST);
+
+    // Looking for all TST with this subject to set
+    List<TeacherSubjectTypeModel> teacherSubjectTypes = teacherSubjectTypeRepository.findAllBySubjectId(existingSubject.getId());
+    existingSubject.setTeacherSubjectTypes(teacherSubjectTypes);
+
+    return new ResponseEntity<>(new DefaultSubjectStatus("subjectEdited", existingSubject), HttpStatus.ACCEPTED);
   }
 }

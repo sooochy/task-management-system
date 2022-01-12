@@ -111,11 +111,15 @@ public class PlanElementController {
       if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
   
       // Checking if user has request's tstId assigned
-      TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
       SubjectModel subject = subjectRepository.findOneByIdAndUser(teacherSubjectType.getSubject().getId(), user);
       TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
-  
-      if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+
+      if(user.getType() == 1) {
+        TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
+        if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+      } else {
+        if(Stream.of(subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+      }
     }
 
     // Checking if current element has name (if not -> has TST)
@@ -181,11 +185,15 @@ public class PlanElementController {
       if(teacherSubjectType == null) { throw new UserNotExists("TSTnotExists"); }
   
       // Checking if user has request's tstId assigned
-      TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
       SubjectModel subject = subjectRepository.findOneByIdAndUser(teacherSubjectType.getSubject().getId(), user);
       TypeModel type = typeRepository.findOneByIdAndUser(teacherSubjectType.getType().getId(), user);
-  
-      if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+
+      if(user.getType() == 1) {
+        TeacherModel teacher = teacherRepository.findOneByIdAndUser(teacherSubjectType.getTeacher().getId(), user);
+        if(Stream.of(teacher, subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+      } else {
+        if(Stream.of(subject, type).anyMatch(value -> value.equals(null))) { throw new NotValidException("incorrectTST"); }
+      }
     }
 
     // Checking if current element has name (if not -> has TST)

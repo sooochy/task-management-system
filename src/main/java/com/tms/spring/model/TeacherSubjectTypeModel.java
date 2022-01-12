@@ -20,7 +20,7 @@ public class TeacherSubjectTypeModel {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "teacher_id", nullable = false)
+  @JoinColumn(name = "teacher_id")
   private TeacherModel teacher;
 
   @ManyToOne
@@ -51,6 +51,11 @@ public class TeacherSubjectTypeModel {
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "teacherSubjectType")
   private List<MarkModel> marks;
+
+  public TeacherSubjectTypeModel(SubjectModel subject, TypeModel type) {
+    this.subject = subject;
+    this.type = type;
+  }
 
   public TeacherSubjectTypeModel(TeacherModel teacher, SubjectModel subject, TypeModel type) {
     this.teacher = teacher;

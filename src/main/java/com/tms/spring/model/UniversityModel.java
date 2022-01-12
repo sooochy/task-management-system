@@ -7,6 +7,7 @@ import javax.persistence.*;
 import java.util.Collections;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Getter
@@ -26,6 +27,7 @@ public class UniversityModel {
   @JoinColumn(name = "user_id", nullable = false)
   private UserModel user;
 
+  @JsonIgnoreProperties({ "university" })
   @OneToMany(mappedBy = "university")
   private List<FacultyModel> faculties;
 

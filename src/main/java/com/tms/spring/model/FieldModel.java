@@ -6,6 +6,7 @@ import java.util.List;
 import javax.persistence.*;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Getter
@@ -25,11 +26,12 @@ public class FieldModel {
   @JoinColumn(name = "user_id", nullable = false)
   private UserModel user;
 
-  @JsonIgnore
-  @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIgnoreProperties({ "fields" })
+  @ManyToOne
   @JoinColumn(name = "faculty_id", nullable = false)
   private FacultyModel faculty;
 
+  @JsonIgnore
   @OneToMany(mappedBy = "field")
   private List<SubjectModel> subjects;
 

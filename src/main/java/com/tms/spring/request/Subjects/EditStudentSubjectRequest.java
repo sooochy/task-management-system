@@ -7,7 +7,8 @@ import java.util.ArrayList;
 
 @Getter
 @Setter
-public class AddUserSubjectRequest {
+public class EditStudentSubjectRequest {
+  private Long id;
   private String name;
   private List<TeacherType> teacherType;
   private String userEmail;

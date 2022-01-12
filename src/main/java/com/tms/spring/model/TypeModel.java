@@ -33,5 +33,5 @@ public class TypeModel {
   public TypeModel(String name, UserModel user) {
     this.name = name;
     this.user = user;
-  };
+  }
 }

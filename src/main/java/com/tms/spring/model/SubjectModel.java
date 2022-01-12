@@ -21,8 +21,8 @@ public class SubjectModel {
   @Column(nullable = false)
   private String name;
 
-  @JsonIgnore
-  @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIgnoreProperties({"subjects"})
+  @ManyToOne
   @JoinColumn(name = "field_id")
   private FieldModel field;
 
@@ -38,5 +38,18 @@ public class SubjectModel {
   public SubjectModel(String name, UserModel user) {
     this.name = name;
     this.user = user;
-  };
+  }
+
+  public SubjectModel(String name, FieldModel field, UserModel user) {
+    this.name = name;
+    this.field = field;
+    this.user = user;
+  }
+
+  public SubjectModel(Long id, String name, FieldModel field, UserModel user) {
+    this.id = id;
+    this.name = name;
+    this.field = field;
+    this.user = user;
+  }
 }
