@@ -110,6 +110,13 @@ public class EventController {
       throw new UserNotExists("tokenNotValid");
     }
 
+    // Checking event's files limit (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(request.getFiles() != null && user.getUploadedFiles() + request.getFiles().length > 10) {
+        throw new NotValidException("outOfFilesLimit");
+      } 
+    }
+
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
     if(request.getDescription() == null) { request.setDescription(""); }
@@ -353,6 +360,13 @@ public class EventController {
     // Deleting old files
     fileRepository.deleteAll(listOfFiles);
     fileRepository.flush();
+
+    // Checking event's files limit after deleting old ones (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(request.getFiles() != null && user.getUploadedFiles() + request.getFiles().length > 10) {
+        throw new NotValidException("outOfFilesLimit");
+      } 
+    }
 
     // Saving event's files to database with eventId
     try {

@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.Getter;
 import java.util.List;
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.tms.spring.hashing.HashingMachine;
@@ -28,8 +29,10 @@ public class UserModel {
   @Column(nullable = false)
   private Short type; // 1 - student, 2 - teacher
 
+  private LocalDateTime subExpirationDate; // null if no subscription bought
+
   @Column(nullable = false)
-  private Boolean subscription;
+  private Long uploadedFiles;
 
   @PrimaryKeyJoinColumn
   @OneToOne(orphanRemoval = true, mappedBy = "user")
@@ -83,7 +86,8 @@ public class UserModel {
     this.email = email;
     this.password = password;
     this.type = type;
-    this.subscription = false;
+    this.subExpirationDate = null;
+    this.uploadedFiles = 0L;
   }
 
   public Boolean checkUser(String token) {

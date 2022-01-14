@@ -7,6 +7,7 @@ import java.util.stream.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.lang.reflect.Array;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -98,10 +99,24 @@ public class MaterialController {
     // In request: name, description, date, tstId, [userEmail, userToken], file[]
     // In response: MaterialModel (with only files IDs)
 
+    // TODO: more than 10 materials if user has TMS premium
+
     // Need to get user's already hashed password through email in 'user' table and check if email exists in 'user' table
     UserModel user = userRepository.findOneByEmail(userEmail);
     if(user == null || !user.checkUser(userToken)) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking materials limit and files (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(files != null && user.getUploadedFiles() + files.length <= 10) {
+        throw new NotValidException("outOfFilesLimit");
+      }
+
+      long materialsAmount = materialRepository.countByUser(user);
+      if(materialsAmount >= 10) {
+        throw new NotValidException("outOfMaterialsLimit");
+      }
     }
 
     // Checking if description and files are empty
@@ -219,7 +234,14 @@ public class MaterialController {
       }
     }
     fileRepository.deleteAll(listOfFiles);
-    
+
+    // Checking material's files limit after deleting old ones (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(files != null && user.getUploadedFiles() + files.length > 10) {
+        throw new NotValidException("outOfFilesLimit");
+      }
+    }
+
     // Saving new material's files to database
     try {
       if(files != null) { Arrays.asList(files).stream().map(file -> uploadFile(file, material.getId())).collect(Collectors.toList()); }

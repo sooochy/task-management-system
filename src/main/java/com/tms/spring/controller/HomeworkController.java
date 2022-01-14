@@ -110,6 +110,18 @@ public class HomeworkController {
       throw new UserNotExists("tokenNotValid");
     }
 
+    // Checking homeworks limit and files (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(request.getFiles() != null && user.getUploadedFiles() + request.getFiles().length > 10) {
+        throw new NotValidException("outOfFilesLimit");
+      } 
+
+      long homeworksAmount = homeworkRepository.countByIsDoneAndUser(false, user);
+      if(homeworksAmount >= 10) {
+        throw new NotValidException("outOfCurrentTasksLimit");
+      }
+    }
+
     // Name and optional description check
     if(request.getName().length() < 1 || request.getName().length() > 100) { throw new NotValidException("incorrectName"); }
     if(request.getDescription() == null) { request.setDescription(""); }
@@ -342,6 +354,13 @@ public class HomeworkController {
     fileRepository.deleteAll(listOfFiles);
     fileRepository.flush();
 
+    // Checking homework's files limit (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
+      if(request.getFiles() != null && user.getUploadedFiles() + request.getFiles().length > 10) {
+        throw new NotValidException("outOfFilesLimit");
+      }
+    }
+
     // Saving new homework's files to database
     try {
       if(request.getFiles() != null) { Arrays.asList(request.getFiles()).stream().map(file -> uploadFile(file, homework.getId())).collect(Collectors.toList()); }
@@ -441,6 +460,14 @@ public class HomeworkController {
     UserModel user = userRepository.findOneByEmail(request.getUserEmail());
     if(user == null || !user.checkUser(request.getUserToken())) {
       throw new UserNotExists("tokenNotValid");
+    }
+
+    // Checking homeworks limit (non premium user or expired subscription)
+    if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now()) && request.getIsDone() == false) {
+      long homeworksAmount = homeworkRepository.countByIsDoneAndUser(request.getIsDone(), user);
+      if(homeworksAmount >= 10) {
+        throw new NotValidException("outOfCurrentTasksLimit");
+      }
     }
 
     // Looking for homework to finish/restore in database
