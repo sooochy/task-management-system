@@ -7,6 +7,8 @@ import java.util.Date;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import javax.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Getter
@@ -29,13 +31,20 @@ public class NotificationModel {
   @Column(nullable = false)
   private String language;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "event_id")
+  @JsonIgnoreProperties({ "notifications" })
   private EventModel event;
   
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "homework_id")
+  @JsonIgnoreProperties({ "notifications" })
   private HomeworkModel homework;
+
+  @JsonIgnore
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserModel user;
 
   public NotificationModel() {}
 

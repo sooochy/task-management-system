@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.tms.spring.hashing.HashingMachine;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Getter
@@ -77,6 +78,10 @@ public class UserModel {
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<HomeworkModel> homeworks;
+
+  @JsonIgnore
+  @OneToMany(orphanRemoval = true, mappedBy = "user")
+  private List<NotificationModel> notifications;
 
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "user")

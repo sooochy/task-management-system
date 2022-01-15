@@ -42,7 +42,7 @@ public class NotificationSender {
     NotificationRepository notificationRepository;
 
     // Task is called every 60 seconds
-	@Scheduled(fixedRate = 30000)
+	@Scheduled(fixedRate = 60000)
 	public void checkAlertDate() {
         UserModel user;
         EventModel event;
