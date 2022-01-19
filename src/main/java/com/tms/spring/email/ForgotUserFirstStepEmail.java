@@ -22,7 +22,7 @@ public class ForgotUserFirstStepEmail {
         if(language.equals("pl")) {
             messageSubject = "[TMS] Zresetuj swoje hasło.";
             messageContent = "<body><h3>Witaj,</h3>" + 
-            "Aby zresetować swoje hasło  <a href=\"http://localhost:3000/forgot/secondstep/" + this.email + "/" + this.token + "\">w ten link</a>" +
+            "Aby zresetować swoje hasło  <a href=\"http://tms.ts4ever.pl/forgot/secondstep/" + this.email + "/" + this.token + "\">w ten link</a>" +
             " i postępuj zgodnie z instrukcjami." + 
             
             "<br>Do zobaczenia!" +
@@ -31,7 +31,7 @@ public class ForgotUserFirstStepEmail {
         else {
             messageSubject = "[TMS] Reset your password.";
             messageContent = "<body><h3>Hello there,</h3>" + 
-            "To reset your password, <a href=\"http://localhost:3000/forgot/secondstep/" + this.email + "/" + this.token + "\">follow the link</a>" + 
+            "To reset your password, <a href=\"http://tms.ts4ever.pl/forgot/secondstep/" + this.email + "/" + this.token + "\">follow the link</a>" + 
             " and pursue given instructions." + 
 
             "<br>See ya!" +

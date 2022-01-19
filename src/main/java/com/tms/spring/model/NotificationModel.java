@@ -2,10 +2,12 @@ package com.tms.spring.model;
 
 import lombok.Setter;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Date;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -13,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Getter
 @Setter
+@ToString
+@NoArgsConstructor
 @Table(name = "notification")
 public class NotificationModel {
   @Id
@@ -40,13 +44,6 @@ public class NotificationModel {
   @JoinColumn(name = "homework_id")
   @JsonIgnoreProperties({ "notifications" })
   private HomeworkModel homework;
-
-  @JsonIgnore
-  @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private UserModel user;
-
-  public NotificationModel() {}
 
   public NotificationModel(LocalDateTime alertDate, String language, HomeworkModel homework) {
     this.alertDate = alertDate;

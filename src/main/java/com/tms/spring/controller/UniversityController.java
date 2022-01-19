@@ -88,7 +88,7 @@ public class UniversityController {
     }
 
     // Saving new faculty to database
-    FacultyModel faculty = new FacultyModel(request.getName(), university, user);
+    FacultyModel faculty = new FacultyModel(request.getName(), university);
     facultyRepository.saveAndFlush(faculty);
 
     return new ResponseEntity<>(new DefaultFacultyStatus("facultyAdded", faculty), HttpStatus.CREATED);

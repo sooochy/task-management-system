@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.List;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "homework")
 public class HomeworkModel {
   @Id
@@ -55,15 +57,8 @@ public class HomeworkModel {
   @JoinColumn(name = "tst_id", nullable = false)
   private TeacherSubjectTypeModel teacherSubjectType;
 
-  @JsonIgnore
-  @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private UserModel user;
-
-  public HomeworkModel() {}
-
-  public HomeworkModel(String name, String description, LocalDateTime deadline, Long estimatedTime, LocalDateTime date, 
-      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public HomeworkModel(String name, String description, LocalDateTime deadline, Long estimatedTime, LocalDateTime date,
+      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType) {
     this.name = name;
     this.description = description;
     this.deadline = deadline;
@@ -72,11 +67,11 @@ public class HomeworkModel {
     this.isMarked = isMarked;
     this.isDone = false;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 
-  public HomeworkModel(Long id, String name, String description, LocalDateTime deadline, Long estimatedTime, LocalDateTime date, 
-      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public HomeworkModel(Long id, String name, String description, LocalDateTime deadline, Long estimatedTime,
+      LocalDateTime date,
+      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -86,6 +81,5 @@ public class HomeworkModel {
     this.isMarked = isMarked;
     this.isDone = false;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 }

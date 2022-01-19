@@ -22,7 +22,7 @@ public class SignUpFirstStepEmail {
         if(language.equals("pl")) {
             messageSubject = "[TMS] Zweryfikuj swój email.";
             messageContent = "<body><h3>Witaj,</h3>" + 
-            "Aby aktywować swoje konto i przejść do kolejnego etapu rejestracji przejdź <a href=\"http://localhost:3000/signup/secondstep/" + this.email + "/" + this.token + "\">w ten link</a>" +
+            "Aby aktywować swoje konto i przejść do kolejnego etapu rejestracji przejdź <a href=\"http://tms.ts4ever.pl/signup/secondstep/" + this.email + "/" + this.token + "\">w ten link</a>" +
             " i postępuj zgodnie z instrukcjami." + 
             
             "<br>Do zobaczenia!" +
@@ -31,7 +31,7 @@ public class SignUpFirstStepEmail {
         else {
             messageSubject = "[TMS] Verify your email.";
             messageContent = "<body><h3>Hello there,</h3>" + 
-            "To activate your account and go to the next stage of registration, <a href=\"http://localhost:3000/signup/secondstep/" + this.email + "/" + this.token + "\">follow the link</a>" + 
+            "To activate your account and go to the next stage of registration, <a href=\"http://tms.ts4ever.pl/signup/secondstep/" + this.email + "/" + this.token + "\">follow the link</a>" + 
             " and pursue given instructions." + 
 
             "<br>See ya!" +

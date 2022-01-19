@@ -21,23 +21,17 @@ public class FieldModel {
   @Column(nullable = false)
   private String name;
 
-  @JsonIgnore
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private UserModel user;
-
   @JsonIgnoreProperties({ "fields" })
   @ManyToOne
   @JoinColumn(name = "faculty_id", nullable = false)
   private FacultyModel faculty;
 
   @JsonIgnore
-  @OneToMany(mappedBy = "field")
+  @OneToMany(orphanRemoval = true, mappedBy = "field")
   private List<SubjectModel> subjects;
 
-  public FieldModel(String name, FacultyModel faculty, UserModel user) {
+  public FieldModel(String name, FacultyModel faculty) {
     this.name = name;
     this.faculty = faculty;
-    this.user = user;
   }
 }

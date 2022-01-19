@@ -76,26 +76,29 @@ public class NotificationController {
         fullNotification = userNotifications.get(i);
 
         // Limit to 10 notifications or without limit if not viewed
-        if(i >= 10) {
+        if(notificationsList.size() >= 10) {
             if(fullNotification.getIsViewed() == true) {
                 break;
             }
         }
 
-        // to get: id, homework/event name, homework/event deadline, alertDate, isViewed
-        NotificationList notificationToShow = new NotificationList();
-        notificationToShow.setId(fullNotification.getId());
-
-        if(fullNotification.getHomework() != null) {
-            notificationToShow.setName(fullNotification.getHomework().getName());
-            notificationToShow.setDeadline(fullNotification.getHomework().getDeadline());
-        } else {
-            notificationToShow.setName(fullNotification.getEvent().getName());
-            notificationToShow.setDeadline(fullNotification.getEvent().getStartDate());
+        if(fullNotification.getAlertDate().isBefore(LocalDateTime.now())) {
+  
+          // to get: id, homework/event name, homework/event deadline, alertDate, isViewed
+          NotificationList notificationToShow = new NotificationList();
+          notificationToShow.setId(fullNotification.getId());
+  
+          if(fullNotification.getHomework() != null) {
+              notificationToShow.setName(fullNotification.getHomework().getName());
+              notificationToShow.setDeadline(fullNotification.getHomework().getDeadline());
+          } else {
+              notificationToShow.setName(fullNotification.getEvent().getName());
+              notificationToShow.setDeadline(fullNotification.getEvent().getStartDate());
+          }
+          notificationToShow.setAlertDate(fullNotification.getAlertDate());
+          notificationToShow.setIsViewed(fullNotification.getIsViewed());
+          notificationsList.add(notificationToShow);
         }
-        notificationToShow.setAlertDate(fullNotification.getAlertDate());
-        notificationToShow.setIsViewed(fullNotification.getIsViewed());
-        notificationsList.add(notificationToShow);
     }
 
     return new ResponseEntity<>(notificationsList, HttpStatus.CREATED);

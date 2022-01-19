@@ -130,7 +130,7 @@ public class MarkController {
     } else { throw new NotValidException("emptyTstId"); }
 
     // Creating and saving new mark of event/homework/tst
-    MarkModel mark = new MarkModel(request.getMark(), date, request.getDescription(), teacherSubjectType, user);
+    MarkModel mark = new MarkModel(request.getMark(), date, request.getDescription(), teacherSubjectType);
     markRepository.saveAndFlush(mark);
 
     return new ResponseEntity<>(new DefaultMarkStatus("markAdded", mark), HttpStatus.CREATED);
@@ -204,7 +204,7 @@ public class MarkController {
         event = eventRepository.findOneByIdAndUser(mark.getEvent().getId(), user);
         if(event == null) { throw new UserNotExists("eventNotExists"); }
         if(event.getIsMarked() == false) { throw new UserNotExists("eventNotMarked"); }
-        if(date.isBefore(event.getStartDate())) { throw new NotValidException("incorrectEventMarkDate"); }
+        //if(date.isBefore(event.getStartDate())) { throw new NotValidException("incorrectEventMarkDate"); }
     }
     
     // Looking for user's homework by id
@@ -213,11 +213,11 @@ public class MarkController {
         homework = homeworkRepository.findOneByIdAndUser(mark.getHomework().getId(), user);
         if(homework == null) { throw new UserNotExists("homeworkNotExists"); }
         if(homework.getIsMarked() == false) { throw new UserNotExists("homeworkNotMarked"); }
-        if(date.isBefore(homework.getDate())) { throw new NotValidException("incorrectHomeworMarkkDate"); }
+        //if(date.isBefore(homework.getDate())) { throw new NotValidException("incorrectEventMarkDate"); }
     }
 
     // Saving new edited mark of event/homework/tst
-    // MarkModel editedMark = new MarkModel(request.getId(), request.getMark(), date, request.getDescription(), event, homework, teacherSubjectType, user);
+    // MarkModel editedMark = new MarkModel(request.getId(), request.getMark(), date, request.getDescription(), event, homework, teacherSubjectType);
     mark.setMark(request.getMark());
     mark.setDate(date);
     mark.setDescription(request.getDescription());
@@ -276,6 +276,6 @@ public class MarkController {
       throw new UserNotExists("typeError");
     }
 
-    return new ResponseEntity<>(user.getMarks(), HttpStatus.OK);
+    return new ResponseEntity<>(markRepository.findAllByUser(user), HttpStatus.OK);
   }
 }

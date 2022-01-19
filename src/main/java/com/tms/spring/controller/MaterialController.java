@@ -109,7 +109,7 @@ public class MaterialController {
 
     // Checking materials limit and files (non premium user or expired subscription)
     if(user.getSubExpirationDate() == null || user.getSubExpirationDate().isBefore(LocalDateTime.now())) {
-      if(files != null && user.getUploadedFiles() + files.length <= 10) {
+      if(files != null && user.getUploadedFiles() + files.length > 10) {
         throw new NotValidException("outOfFilesLimit");
       }
 
@@ -153,7 +153,7 @@ public class MaterialController {
     }
 
     // Creating and saving new material
-    MaterialModel material = new MaterialModel(name, description, localDate, teacherSubjectType, user);
+    MaterialModel material = new MaterialModel(name, description, localDate, teacherSubjectType);
     materialRepository.saveAndFlush(material);
 
     // Saving material's files to database with materialId
@@ -250,7 +250,7 @@ public class MaterialController {
     }
 
     // Setting name, description, date and TSS
-    MaterialModel editedMaterial = new MaterialModel(id, name, description, localDate, teacherSubjectType, user);
+    MaterialModel editedMaterial = new MaterialModel(id, name, description, localDate, teacherSubjectType);
     
     // Assigning files to material
     List<FileModel> materialFiles = fileRepository.findAllByMaterialId(id);
@@ -304,7 +304,7 @@ public class MaterialController {
       throw new UserNotExists("typeError");
     }
 
-    return new ResponseEntity<>(user.getMaterials(), HttpStatus.OK);
+    return new ResponseEntity<>(materialRepository.findAllByUser(user), HttpStatus.OK);
   }
 
   /* ============================================================ [ UPLOAD FILE ] ======================================================= */

@@ -60,7 +60,7 @@ public class FileStorageService {
             if(fileName.contains("..")) {
                 throw new FileStorageException("invalidPathSequence");
             }
-
+            
             HomeworkModel homework = homeworkRepository.findOneById(homeworkId);
             FileModel fileModel = new FileModel(fileName, file.getContentType(), file.getBytes(), homework, file.getSize());
 

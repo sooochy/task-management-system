@@ -101,7 +101,7 @@ public class SubjectController {
 
     // Saving new model to database
     TypeModel type = new TypeModel(request.getName(), user);
-    typeRepository.save(type);
+    typeRepository.saveAndFlush(type);
 
     return new ResponseEntity<>(new DefaultSubjectStatus("typeAdded", type.getId()), HttpStatus.CREATED);
   }
@@ -136,7 +136,7 @@ public class SubjectController {
 
     // Saving teacher to 'teachers' table with updated data
     existingType.setName(request.getName());
-    typeRepository.save(existingType);
+    typeRepository.saveAndFlush(existingType);
 
     return new ResponseEntity<>(new DefaultSubjectStatus("typeEdited"), HttpStatus.ACCEPTED);
   }
@@ -259,22 +259,28 @@ public class SubjectController {
 
     // Saving new subject to database
     SubjectModel subject = new SubjectModel(request.getName(), user);
-    subjectRepository.save(subject);
+    subjectRepository.saveAndFlush(subject);
 
     // Saving typeId, subjectId, teacherId to 'teacher_subject_type'
     TypeModel type;
     TeacherModel teacher;
     TeacherSubjectTypeModel teacherSubjectType = new TeacherSubjectTypeModel();
+    List<TeacherSubjectTypeModel> teacherSubjectTypes = new ArrayList<>();
 
     for (Integer i = 0; i < request.getTeacherType().size(); i++) {
       teacher = teacherRepository.findOneById(request.getTeacherType().get(i).getTeacherId());
       type = typeRepository.findOneById(request.getTeacherType().get(i).getTypeId());
       
       teacherSubjectType = new TeacherSubjectTypeModel(teacher, subject, type);
-      teacherSubjectTypeRepository.save(teacherSubjectType);
+      teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
+      teacherSubjectTypes.add(teacherSubjectType);
     }
 
-    return new ResponseEntity<>(new DefaultSubjectStatus("subjectAdded", subject.getId()), HttpStatus.CREATED);
+    teacherSubjectTypeRepository.flush();
+    subjectRepository.flush();
+    subject.setTeacherSubjectTypes(teacherSubjectTypes);
+
+    return new ResponseEntity<>(new DefaultSubjectStatus("subjectAdded", subject), HttpStatus.CREATED);
   }
 
   /* =========================================================== [ EDIT STUDENT SUBJECT ] ====================================================== */
@@ -351,7 +357,7 @@ public class SubjectController {
 
     // Saving subject to 'subject' table with updated data
     existingSubject.setName(request.getName());
-    subjectRepository.save(existingSubject);
+    subjectRepository.saveAndFlush(existingSubject);
 
     // Saving data with updated (edited) values
     TypeModel type;
@@ -375,7 +381,7 @@ public class SubjectController {
 
             teacherSubjectType.setTeacher(teacher);
             teacherSubjectType.setType(type);
-            teacherSubjectTypeRepository.save(teacherSubjectType);
+            teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
           }
         }
       } else {
@@ -383,13 +389,17 @@ public class SubjectController {
         type = typeRepository.findOneById(teacherType.getTypeId());
 
         teacherSubjectType = new TeacherSubjectTypeModel(teacher, existingSubject, type);
-        teacherSubjectTypeRepository.save(teacherSubjectType);
+        teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
       }
     }
 
     teacherSubjectTypeRepository.deleteAll(toDeleteTST);
+    teacherSubjectTypeRepository.flush();
+    subjectRepository.flush();
 
-    return new ResponseEntity<>(new DefaultSubjectStatus("subjectEdited"), HttpStatus.ACCEPTED);
+    existingSubject = subjectRepository.findOneByIdAndUser(existingSubject.getId(), user);
+
+    return new ResponseEntity<>(new DefaultSubjectStatus("subjectEdited", existingSubject), HttpStatus.ACCEPTED);
   }
 
   /* =========================================================== [ DELETE USER SUBJECT ] ====================================================== */
@@ -593,14 +603,14 @@ public class SubjectController {
 
             teacherSubjectType.setTeacher(teacher);
             teacherSubjectType.setType(typeModel);
-            teacherSubjectTypeRepository.save(teacherSubjectType);
+            teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
           }
         }
       } else {
         typeModel = typeRepository.findOneById(type.getTypeId());
 
         teacherSubjectType = new TeacherSubjectTypeModel(teacher, existingSubject, typeModel);
-        teacherSubjectTypeRepository.save(teacherSubjectType);
+        teacherSubjectTypeRepository.saveAndFlush(teacherSubjectType);
       }
     }
 

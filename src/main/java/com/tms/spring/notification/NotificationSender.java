@@ -53,12 +53,32 @@ public class NotificationSender {
         List<NotificationModel> notifications = Collections.<NotificationModel>emptyList();
 
         // Looking for all notifications in database
-        notifications = notificationRepository.findAll();
-        
-        // Current date to compare with notification's time
-        LocalDateTime currentTime = LocalDateTime.now();
+        notifications = notificationRepository.findAllByIsSentAndBeforeNow(false);
 
-        // Checking whether the notification e-mail has already been sent or is waiting in the queue
+        for(Integer i = 0; i < notifications.size(); i++) {
+            notification = notifications.get(i);
+            notification.setIsSent(true);
+
+            if(notification.getHomework() != null) {
+                homework = homeworkRepository.findOneById(notification.getHomework().getId());
+                user = userRepository.findOneById(homeworkRepository.getUserId(homework.getId()));
+
+                if(homework.getIsDone() == false) {
+                    homeworkEmail = new NotificationHomeworkEmail(user.getEmail(), notification.getLanguage(), homework);
+                    homeworkEmail.sendEmail();
+                }
+            } else if(notification.getEvent() != null) {
+                event = eventRepository.findOneById(notification.getEvent().getId());
+
+                eventEmail = new NotificationEventEmail(event.getUser().getEmail(), notification.getLanguage(), event);
+                eventEmail.sendEmail();
+            }
+
+            notificationRepository.saveAndFlush(notification);
+        }
+
+
+        /* // Checking whether the notification e-mail has already been sent or is waiting in the queue
         for(Integer i = 0; i < notifications.size(); i++) {
             notification = notifications.get(i);
 
@@ -74,7 +94,7 @@ public class NotificationSender {
                 if(homework.getIsDone()) { break; }
 
                 // Checking to which user the notification should be sent
-                user = userRepository.findOneById(homework.getUser().getId());
+                user = homeworkRepository.getUserById(homework.getId());
                 if(user == null) { throw new UserNotExists("userNotExists"); }
 
                 // Sending email to user
@@ -92,7 +112,7 @@ public class NotificationSender {
                 if(event == null) { throw new UserNotExists("eventNotExists"); }
 
                 // Checking to which user the notification should be sent
-                user = userRepository.findOneById(event.getUser().getId());
+                user = eventRepository.getUserById(event.getId());
                 if(user == null) { throw new UserNotExists("userNotExists"); }
 
                 // Sending email to user
@@ -102,6 +122,6 @@ public class NotificationSender {
                 // Saving notification as sent
                 notificationRepository.saveAndFlush(notification);
             }
-        }
+        } */
 	}
 } 

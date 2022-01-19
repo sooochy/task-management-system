@@ -21,7 +21,7 @@ public class UserModel {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-	@Column(nullable = false)
+  @Column(nullable = false)
   private String email;
 
   @Column(nullable = false)
@@ -57,35 +57,11 @@ public class UserModel {
 
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<FacultyModel> faculties;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<FieldModel> fields;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<TypeModel> types;
 
   @JsonIgnore
   @OneToMany(orphanRemoval = true, mappedBy = "user")
   private List<EventModel> events;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<MaterialModel> materials;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<HomeworkModel> homeworks;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<NotificationModel> notifications;
-
-  @JsonIgnore
-  @OneToMany(orphanRemoval = true, mappedBy = "user")
-  private List<MarkModel> marks;
 
   public UserModel(String email, String password, Short type) {
     this.email = email;
@@ -96,12 +72,13 @@ public class UserModel {
   }
 
   public Boolean checkUser(String token) {
-    // Creating user's private token with SHA-1 coding -> hashingSha1(email + "ujedxgtv5frjoegd4rt@#%&^#^(0agt5r4" + password) = user token
+    // Creating user's private token with SHA-1 coding -> hashingSha1(email +
+    // "ujedxgtv5frjoegd4rt@#%&^#^(0agt5r4" + password) = user token
     HashingMachine hashingMachine = new HashingMachine();
     String hashedToken = hashingMachine.createAuthToken(getEmail(), getPassword());
 
-    // Checking if it's a valid user by tokens comparision 
-    if(!token.equals(hashedToken)) {
+    // Checking if it's a valid user by tokens comparision
+    if (!token.equals(hashedToken)) {
       return false;
     }
     return true;

@@ -4,12 +4,14 @@ import lombok.Setter;
 import lombok.Getter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "mark")
 public class MarkModel {
   @Id
@@ -19,7 +21,7 @@ public class MarkModel {
   private Float mark;
 
   private LocalDateTime date;
-  
+
   @Size(max = 2048)
   private String description;
 
@@ -32,37 +34,28 @@ public class MarkModel {
   private HomeworkModel homework;
 
   @ManyToOne
-  @JoinColumn(name = "teacherSubjectType_id")
+  @JoinColumn(name = "tst_id", nullable = false)
   private TeacherSubjectTypeModel teacherSubjectType;
 
-  @JsonIgnore
-  @ManyToOne
-  @JoinColumn(name = "user_id", nullable = false)
-  private UserModel user;
-
-  public MarkModel() {}
-
-  public MarkModel(HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public MarkModel(HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType) {
     this.homework = homework;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 
-  public MarkModel(EventModel event, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public MarkModel(EventModel event, TeacherSubjectTypeModel teacherSubjectType) {
     this.event = event;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 
-  public MarkModel(Float mark, LocalDateTime date, String description, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public MarkModel(Float mark, LocalDateTime date, String description, TeacherSubjectTypeModel teacherSubjectType) {
     this.mark = mark;
     this.date = date;
     this.description = description;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 
-  public MarkModel(Long id, Float mark, LocalDateTime date, String description, EventModel event, HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public MarkModel(Long id, Float mark, LocalDateTime date, String description, EventModel event,
+      HomeworkModel homework, TeacherSubjectTypeModel teacherSubjectType) {
     this.id = id;
     this.mark = mark;
     this.date = date;
@@ -70,6 +63,5 @@ public class MarkModel {
     this.event = event;
     this.homework = homework;
     this.teacherSubjectType = teacherSubjectType;
-    this.user = user;
   }
 }

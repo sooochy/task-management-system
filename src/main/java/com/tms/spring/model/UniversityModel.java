@@ -28,7 +28,7 @@ public class UniversityModel {
   private UserModel user;
 
   @JsonIgnoreProperties({ "university" })
-  @OneToMany(mappedBy = "university")
+  @OneToMany(orphanRemoval = true, mappedBy = "university")
   private List<FacultyModel> faculties;
 
   public UniversityModel(String name, UserModel user) {

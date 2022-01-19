@@ -81,7 +81,7 @@ public class FieldController {
     }
 
     // Saving new faculty to database
-    FieldModel field = new FieldModel(request.getName(), faculty, user);
+    FieldModel field = new FieldModel(request.getName(), faculty);
     fieldRepository.saveAndFlush(field);
 
     return new ResponseEntity<>(new DefaultFieldStatus("fieldAdded", field), HttpStatus.CREATED);
@@ -171,6 +171,6 @@ public class FieldController {
       throw new UserNotExists("typeError");
     }
 
-    return new ResponseEntity<>(user.getFields(), HttpStatus.OK);
+    return new ResponseEntity<>(fieldRepository.findAllByUser(user), HttpStatus.OK);
   }
 }

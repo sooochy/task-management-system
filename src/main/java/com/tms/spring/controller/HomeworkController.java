@@ -186,7 +186,7 @@ public class HomeworkController {
     }
 
     // Creating and saving new homework
-    HomeworkModel homework = new HomeworkModel(request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType, user);
+    HomeworkModel homework = new HomeworkModel(request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType);
     homeworkRepository.saveAndFlush(homework);
 
     // Saving homework's files to database with homeworkId
@@ -236,7 +236,7 @@ public class HomeworkController {
             default:
               throw new NotValidException("incorrectNotification");
           }
-          if(notification.getAlertDate().isBefore(date)) { throw new NotValidException("incorrectNotification"); }
+          // if(notification.getAlertDate().isBefore(date)) { throw new NotValidException("incorrectNotification"); }
           notificationRepository.saveAndFlush(notification);
       }
       notifications = notificationRepository.findAllByHomeworkId(homework.getId());
@@ -247,7 +247,7 @@ public class HomeworkController {
     
     // Creating empty mark (later to update mark of homework in mark controller)
     if(request.getIsMarked() == true) {
-      MarkModel mark = new MarkModel(homework, teacherSubjectType, user);
+      MarkModel mark = new MarkModel(homework, teacherSubjectType);
       markRepository.saveAndFlush(mark);
     }
 
@@ -372,7 +372,7 @@ public class HomeworkController {
     MarkModel mark;
     if(request.getIsMarked() == true) {
       if(homework.getIsMarked() == false) {
-        mark = new MarkModel(homework, teacherSubjectType, user);
+        mark = new MarkModel(homework, teacherSubjectType);
         markRepository.saveAndFlush(mark);
       }
     } else if (request.getIsMarked() == false) {
@@ -387,7 +387,7 @@ public class HomeworkController {
     }
 
     // Setting name, description, date and TSS
-    HomeworkModel editedHomework = new HomeworkModel(homework.getId(), request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType, user);
+    HomeworkModel editedHomework = new HomeworkModel(homework.getId(), request.getName(), request.getDescription(), deadline, request.getEstimatedTime(), date, request.getIsMarked(), teacherSubjectType);
 
     // Assigning files to homework
     List<FileModel> homeworkFiles = fileRepository.findAllByHomeworkId(homework.getId());
@@ -434,7 +434,7 @@ public class HomeworkController {
             default:
               throw new NotValidException("incorrectNotification");
           }
-          if(notification.getAlertDate().isBefore(date)) { throw new NotValidException("incorrectNotification"); }
+          // if(notification.getAlertDate().isBefore(date)) { throw new NotValidException("incorrectNotification"); }
           notificationRepository.saveAndFlush(notification);
       }
       notifications = notificationRepository.findAllByHomeworkId(homework.getId());
@@ -528,14 +528,14 @@ public class HomeworkController {
       throw new UserNotExists("typeError");
     }
 
-    return new ResponseEntity<>(user.getHomeworks(), HttpStatus.OK);
+    return new ResponseEntity<>(homeworkRepository.findAllByUser(user), HttpStatus.OK);
   }
 
   /* ============================================================ [ UPLOAD FILE ] ======================================================= */
 
   public FileModel uploadFile(MultipartFile file, Long homeworkId) {
     FileModel fileModel = fileStorageService.storeHomeworkFile(file, homeworkId);
-    
+
     return fileModel;
   }
 }

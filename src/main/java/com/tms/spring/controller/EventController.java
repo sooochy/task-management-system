@@ -248,7 +248,7 @@ public class EventController {
 
     // Creating empty mark (later to update mark of event in mark controller)
     if(request.getIsMarked() == true) {
-      MarkModel mark = new MarkModel(event, teacherSubjectType, user);
+      MarkModel mark = new MarkModel(event, teacherSubjectType);
       markRepository.saveAndFlush(mark);
     }
 
@@ -379,7 +379,7 @@ public class EventController {
     MarkModel mark;
     if(request.getIsMarked() == true) {
       if(event.getIsMarked() == false) {
-        mark = new MarkModel(event, teacherSubjectType, user);
+        mark = new MarkModel(event, teacherSubjectType);
         markRepository.saveAndFlush(mark);
       }
     } else if (request.getIsMarked() == false) {

@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.List;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 @Table(name = "event")
 public class EventModel {
   @Id
@@ -54,9 +56,8 @@ public class EventModel {
   @JoinColumn(name = "tst_id")
   private TeacherSubjectTypeModel teacherSubjectType;
 
-  public EventModel() {}
-
-  public EventModel(String name, String description, LocalDateTime startDate, LocalDateTime endDate, Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public EventModel(String name, String description, LocalDateTime startDate, LocalDateTime endDate, Boolean isMarked,
+      TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.name = name;
     this.description = description;
     this.startDate = startDate;
@@ -66,7 +67,8 @@ public class EventModel {
     this.user = user;
   }
 
-  public EventModel(Long id, String name, String description, LocalDateTime startDate, LocalDateTime endDate, Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
+  public EventModel(Long id, String name, String description, LocalDateTime startDate, LocalDateTime endDate,
+      Boolean isMarked, TeacherSubjectTypeModel teacherSubjectType, UserModel user) {
     this.id = id;
     this.name = name;
     this.description = description;
