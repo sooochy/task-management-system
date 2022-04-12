@@ -1,6 +1,6 @@
 # Task Management System [TMS] - Backend
 
-An application that will make life easier for students and teachers.
+An extensive application that will make life easier for students and teachers.
 
 ## Demo
 
