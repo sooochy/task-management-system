@@ -6,9 +6,9 @@ An application that will make life easier for students and teachers.
 
 [TMS](http://tms.ts4ever.pl/)
 
-![login](https://imgur.com/SDUmg5Q)
+![login](https://user-images.githubusercontent.com/69474624/162985959-35191105-28bc-4a01-a006-3553f80e5f6b.png)
 
-![dashboard](https://imgur.com/a/2F4g6lV)
+![dashboard](https://user-images.githubusercontent.com/69474624/162985993-16b805d7-7791-48ef-a5ce-f626f62a4dfb.png)
 
 ## Frontend
 
